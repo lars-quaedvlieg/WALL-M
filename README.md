@@ -23,12 +23,24 @@ If you prefer just running the demos from your local Python environment, skip to
       OPENAI_API_KEY: xxxxxxxxx
     ```
 
-3. Start the Docker containers (one for IRIS, one for Jupyter):
+3. Change your directory to hackupc-2024
+    ```Shell
+    cd hackupc-2024
+    ```
+
+4. Start the Docker containers (one for IRIS, one for Jupyter):
     ```Shell
     docker-compose up
     ```
+5. Once loaded, navigate to http://localhost:8888/lab to access the notebook. To view the container information, run in a new terminal:
+    ```Shell
+    docker-compose ps
+    ```
 
 ### Using your local Python environment 
+
+#### Note: if you used the previous method (Jupyter container), you will need to stop the previous docker container before running the following steps, as they will try to use the same port (Alternatively, use a different port)
+
 
 2. Install IRIS Community Edtion in a container:
     ```Shell
@@ -38,9 +50,24 @@ If you prefer just running the demos from your local Python environment, skip to
 
 3. Create a Python environment and activate it (conda, venv or however you wish) For example:
     
+    conda:
     ```Shell
     conda create --name iris-vector-search python=3.10
     conda activate
+    ```
+    or 
+
+    venv (Windows):
+    ```Shell
+    python -m venv iris-vector-search
+    .\venv\Scripts\Activate
+    ```
+    or 
+
+    venv (Unix):
+    ```Shell
+    python -m venv iris-vector-search
+    source ./venv/bin/activate
     ```
 
 4. Install packages for all demos:
@@ -58,6 +85,13 @@ If you prefer just running the demos from your local Python environment, skip to
     ```Shell
     jupyter lab
     ```
+
+## Using the Management Portal
+
+1. Navigate to http://localhost:52773/csp/sys/UtilHome.csp, login with username: demo, password: demo (or whatever you configured)
+2. On the left navigation pane, click 'System Explorer'
+3. Click 'SQL' -> 'Go'
+4. Here, you can execute SQL queries. You can also view the tables by clicking the relevant table on the left, under 'Tables', and then clicking 'Open Table' (above the SQL query box)
 
 ## Basic Demos
 
@@ -79,14 +113,14 @@ If you need to use hybrid search (similarity search with other columns), use IRI
 
 If you're building a genAI app that uses a variety of tools (agents, chained reasoning, api calls), go for langchain. 
 
-If you're building a RAG app, go for the approach llama_index.
+If you're building a RAG app, go for llama_index.
 
-Feel free to contact Alvin / Thomas or file an issue in this GitHub repository if you have any questions!
+The fastest and easiest way to contact any InterSystems Mentor is via Slack or Discord - feel free to ask any questions about our technology, or about your project in general!
 
 
 ## More Demos / References:
 
-### [NLP Queries on  Youtube Audio Transcription](https://github.com/jrpereirajr/intersystems-iris-notebooks/blob/main/vector/langchain-iris/nlp_queries_on_youtube_audio_transcription_dataset.ipynb)
+### [NLP Queries on Youtube Audio Transcription](https://github.com/jrpereirajr/intersystems-iris-notebooks/blob/main/vector/langchain-iris/nlp_queries_on_youtube_audio_transcription_dataset.ipynb)
 Uses langchain-iris to search Youtube Audio transcriptions
 
 ### [langchain-iris demo](https://github.com/caretdev/langchain-iris/blob/main/demo.ipynb)

@@ -1,4 +1,5 @@
 from pathlib import Path
+import warnings
 
 import pandas as pd
 import sqlalchemy
@@ -32,24 +33,29 @@ def get_embeddings(text: str, model: str = "text-embedding-3-small") -> list[flo
 
 def main():
     # Config.
-    table_name = "dummy1"
+    table_name = "dummy2"
     connection_string = "iris://demo:demo@localhost:1972/USER"
     data_dir = Path("data/emails")
     embeddings_dim = 1536  # openai text-embedding-3-small
 
     # Get raw dataframe.
-    data = []
     data_dir = Path("data/emails")
     email_parser = JsonEmailParser(data_dir)
     df = email_parser.parse()
 
     # Get chunks.
     df = chunking(df)
+
+    # Add embeddings.
+    df = df.iloc[:5, :]  # avoid too many api calls until we go into production
+    df["embeddings"] = list(map(get_embeddings, tqdm(df["chunk_text"], desc="Getting embeddings")))
+    print(df.keys())
     print(df)
 
     # Make database.
     # to, from, subject, date, text, thead_id, email_id
     engine = sqlalchemy.create_engine(connection_string)
+    print("Creating database")
     with engine.connect() as conn:
         with conn.begin():
             sql = f"""
@@ -66,14 +72,18 @@ def main():
             embeddings VECTOR(DOUBLE, {embeddings_dim})
             )
                     """
-            result = conn.execute(sqlalchemy.text(sql))
+            try:
+                result = conn.execute(sqlalchemy.text(sql))
+            except sqlalchemy.exc.DatabaseError:
+                warnings.warn(f"Database {table_name} already exists lol")
 
     # Insert data.
+    print("Inserting data into database")
     with engine.connect() as conn:
         with conn.begin():
             for _, row in df.iterrows():
-                sql = sqlalchemy.text("""
-                    INSERT INTO scotch_reviews 
+                sql = sqlalchemy.text(f"""
+                    INSERT INTO {table_name} 
                     (email_id, thread_id, chunk_id, subject, sender, recipient, email_date, text, chunk_text, embeddings)
                     VALUES (:email_id, :thread_id, :chunk_id, :subject, :sender, :recipient, :email_date, :text, :chunk_text, TO_VECTOR(:embeddings))
                 """)

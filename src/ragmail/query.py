@@ -32,7 +32,8 @@ TEMPLATE = (
 def get_response(query: str, contexts: list[str],
                  model: str = "gpt-4-turbo-preview") -> str:
 
-    assert len(contexts) > 0, "Can't answer without context lol"
+    if len(contexts) > 0:
+        raise FileNotFoundError("Can't answer without context")
     context = "-----\n".join(contexts)
     prompt = TEMPLATE.format(query=query, context=context)
     client = OpenAI()
@@ -61,12 +62,15 @@ def query_db(table_name: str, prompt: str, filters: dict[str, Any]) -> pd.DataFr
     # Handle filters.
     people_filter = filters["people_filter"]
     dates_filter = filters["dates_filter"]
+    if people_filter == []:
+        people_filter = None
     if dates_filter == "":
         date1, date2 = "None", "None"
     else:
         date1, date2 = dates_filter
     date1 = None if date1 == "None" else str(date1)
     date2 = None if date2 == "None" else str(date2)
+
     if people_filter is None and date1 is None and date2 is None:
         filter_query = ""
     else:
@@ -99,7 +103,10 @@ def query_db(table_name: str, prompt: str, filters: dict[str, Any]) -> pd.DataFr
             results = conn.execute(sql, {"search_vector": str(search_vector)})
             columns = results.keys()
             context = results.fetchall()
-    return pd.DataFrame(context, columns=columns)
+    res = pd.DataFrame(context, columns=columns)
+    print(sql)
+    print("Resultingggg", res)
+    return res
 
 
 def fix_citations(response: str, context: pd.DataFrame) -> tuple[str, pd.DataFrame]:

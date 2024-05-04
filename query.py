@@ -43,7 +43,7 @@ def get_senders(table_name: str) -> set[str]:
     return {result.lower() for result, in results}
 
 
-def query(table_name: str, prompt: str, filters=None) -> pd.DataFrame:
+def query_db(table_name: str, prompt: str, filters=None) -> pd.DataFrame:
     search_vector = get_embeddings(prompt)  # Convert search phrase into a vector.
     engine = sqlalchemy.create_engine(CONNECTION_STRING)
     with engine.connect() as conn:
@@ -69,3 +69,5 @@ if __name__ == "__main__":
 
     #res = query("dummy2", "fuck you lol")
     #print(res)
+    #print(len(res))
+    #print("\n\n".join(map(str, res)))

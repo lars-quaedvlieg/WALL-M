@@ -7,33 +7,41 @@ from email.mime.multipart import MIMEMultipart
 import sys
 import os
 
+from openai import OpenAI
+from tqdm import tqdm
+
 # Set your OpenAI API key here
 if "OPENAI_API_KEY" in os.environ:
-    openai.api_key = os.environ["OPENAI_API_KEY"]
+    api_key = os.environ["OPENAI_API_KEY"]
 elif len(sys.argv) > 1:
-    openai.api_key = sys.argv[1]
+    api_key = sys.argv[1]
 else:
     raise ValueError(
         "Please provide the OpenAI API key as an environment variable OPENAI_API_KEY or as a command line argument."
     )
 
+client = OpenAI(
+    # This is the default and can be omitted
+    api_key=api_key,
+)
 
 def generate_email_body(topic, previous_emails=None):
-    prompt = f"Write an email about {topic} in the financial domain."
+    prompt = f"Write an email about {topic} in the financial domain. Make sure to only reply to the e-mail thread."
     if previous_emails:
         prompt += " This email is a follow-up to previous discussions, with the most recent e-mails on the bottom:\n" + previous_emails
 
-    response = openai.ChatCompletion.create(
-        model="gpt-4",
-        messages=[{"role": "user", "content": prompt}],
+    response = client.chat.completions.create(
+        messages=[
+            {
+                "role": "user",
+                "content": f"{prompt}",
+            }
+        ],
         max_tokens=500,
-        temperature=0.7,
-        top_p=1,
-        frequency_penalty=0,
-        presence_penalty=0
+        model="gpt-3.5-turbo",
     )
 
-    return response['choices'][0]['message']['content'].strip()
+    return response.choices[0].message.content
 
 
 def create_email(sender, recipient, subject, body, msg_id=None, in_reply_to=None):
@@ -57,7 +65,7 @@ def generate_thread(topic, num_emails=3):
     thread = []
     base_msg_id = f"<{int(time.time())}@example.com>"
 
-    for i in range(num_emails):
+    for i in tqdm(range(num_emails)):
         body = generate_email_body(topic, previous_emails=previous_body)
         msg_id = base_msg_id if i == 0 else f"<{int(time.time())}-{i}@example.com>"
         in_reply_to = None if i == 0 else thread[-1]['Message-ID']

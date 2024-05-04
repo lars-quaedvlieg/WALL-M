@@ -1,0 +1,24 @@
+[
+    {
+        "to": "jane.smith@example.com",
+        "from": "john.doe@example.com",
+        "subject": "Potential Stocks Discussion",
+        "timestamp": "2024-05-04 11:00",
+        "text": "Hi Jane,\n\nI hope you're having a great day. I've been considering investing in renewable energy stocks lately. What are your thoughts on this sector?\n\nBest regards,\nJohn"
+    },
+    {
+        "to": "john.doe@example.com",
+        "from": "jane.smith@example.com",
+        "subject": "RE: Potential Stocks Discussion",
+        "timestamp": "2024-05-04 11:30",
+        "text": "Hi John,\n\nI'm doing well, thank you. Renewable energy stocks sound like a promising choice, especially considering the increasing focus on sustainability. Can you share some specific companies you're interested in?\n\nBest regards,\nJane"
+    },
+    {
+        "to": "jane.smith@example.com",
+        "from": "john.doe@example.com",
+        "subject": "RE: Potential Stocks Discussion",
+        "timestamp": "2024-05-04 12:15",
+        "text": "Hi Jane,\n\nGlad to hear you're interested! I've been looking at companies like Tesla and First Solar. They're leading players in the renewable energy space. What do you think?\n\nBest regards,\nJohn"
+    }
+]
+

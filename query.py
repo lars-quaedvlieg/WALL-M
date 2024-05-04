@@ -1,8 +1,9 @@
-import random
 import pandas as pd
-from rag import get_embeddings
 import sqlalchemy
+from openai import OpenAI
 from dotenv import load_dotenv
+
+from rag import get_embeddings
 
 
 TEMPLATE = (
@@ -15,21 +16,27 @@ TEMPLATE = (
 
 
 
-def get_response(query: str, context: list[str]) -> str:
-    context = "-----\n".join(context)
+def get_response(query: str, contexts: list[str],
+                 model: str = "gpt-3.5-turbo") -> str:
+
+    assert len(contexts) > 0, "Can't answer without context lol"
+    context = "-----\n".join(contexts)
     prompt = TEMPLATE.format(query=query, context=context)
-
-
-
+    client = OpenAI()
+    response = client.chat.completions.create(
+        model=model,
+        messages=[
+            {"role": "system", "content": "You are a helpful assistant. You may only respond questions using information from the context provided."},
+            {"role": "user", "content": prompt}
+        ]
+    )
+    return response.choices[0].message.content
 
 
 def query(table_name: str, prompt: str, filters=None) -> pd.DataFrame:
-
     # Config.
     connection_string = "iris://demo:demo@localhost:1972/USER"
-    embeddings_dim = 1536  # openai text-embedding-3-small
-
-    search_vector = get_embeddings(prompt) #.tolist() # Convert search phrase into a vector
+    search_vector = get_embeddings(prompt)  # Convert search phrase into a vector.
 
     # Query.
     engine = sqlalchemy.create_engine(connection_string)
@@ -49,7 +56,9 @@ def query(table_name: str, prompt: str, filters=None) -> pd.DataFrame:
 
 if __name__ == "__main__":
     load_dotenv()
-    res = query("dummy2", "fuck you lol")
-    print(res)
+    response = get_response("What is 2x2?", ["Scientists recently discovered that 2x2=5"])
+    print(response)
+    #res = query("dummy2", "fuck you lol")
+    #print(res)
     #print(len(res))
     #print("\n\n".join(map(str, res)))

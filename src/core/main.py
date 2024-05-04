@@ -62,20 +62,23 @@ def on_init(state: State) -> None:
     state.dialog_success = False
     state.selected_email = None
     state.selected_email_id = None
-    state.people_names = None
+    state.people_names = []
     state.table_name = None
 
 def request(state: State) -> tuple[str, list[tuple[str, float]]]:
-    response, emails_scores = query(
-        table_name=state.table_name,
-        prompt=state.user_query,
-        filters={
-            "people_filter": state.filter_names,
-            "dates_filter": state.filter_dates,
-        }
-    )
-    return response, emails_scores
-
+    try:
+        response, emails_scores = query(
+            table_name=state.table_name,
+            prompt=state.user_query,
+            filters={
+                "people_filter": state.filter_names,
+                "dates_filter": state.filter_dates,
+            }
+        )
+        return response, emails_scores
+    except FileNotFoundError:
+        notify(state, "error", "No match was found with the provided question settings.")
+        raise Exception()
 
 def send_question(state: State) -> None:
     """

@@ -1,10 +1,12 @@
 import os
 import sys
-import traceback
 from tkinter.filedialog import askdirectory
 
 import openai
-from taipy.gui import Gui, State, notify
+from taipy.gui import Gui, State, notify, navigate
+
+from src.core.page_markdowns.customize import customize_page
+from src.core.page_markdowns.home import home_page
 
 client = None
 
@@ -13,6 +15,7 @@ user_query = ""
 data = {
     "user_query": "",
     "generated_response": "",
+    "generated_emails_scores": "",
 }
 input_frozen = True
 past_data = []
@@ -20,6 +23,8 @@ selected_conv = None
 mail_data_path = None
 show_dialog = False
 dialog_success = False
+selected_email = None
+selected_email_id = None
 
 def on_init(state: State) -> None:
     """
@@ -32,13 +37,17 @@ def on_init(state: State) -> None:
     state.user_query = ""
     state.data["user_query"] = ""
     state.data["generated_response"] = ""
+    state.data["generated_emails_scores"] = ""
     state.past_data = []
     state.input_frozen = True
     state.selected_conv = None
     state.mail_data_path = None
     state.dialog_success = False
+    state.selected_email = None
+    state.selected_email_id = None
 
-def request(state: State) -> str:
+
+def request(state: State) -> tuple[str, list[tuple[str, float]]]:
     """
     Send a prompt to the GPT-4 API and return the response.
 
@@ -58,7 +67,14 @@ def request(state: State) -> str:
     #     ],
     #     model="gpt-4-turbo-preview",
     # )
-    return state.user_query  # response.choices[0].message.content
+    response, emails_scores = (
+        "This has turned fun " + state.user_query,
+        [
+            (r"Fun is this\\" + state.user_query, 0.9),
+            (r"We like fun\\" + state.user_query, 0.8)
+        ]
+    )
+    return response, emails_scores  # response.choices[0].message.content
 
 
 def send_question(state: State) -> None:
@@ -69,10 +85,11 @@ def send_question(state: State) -> None:
         - state: The current state of the app.
     """
     notify(state, "info", "Sending message...")
-    answer = request(state) #.replace("\n", "")
+    response, emails_scores = request(state) #.replace("\n", "")
     data = state.data._dict.copy()
     data["user_query"] = state.user_query
-    data["generated_response"] = answer
+    data["generated_response"] = response
+    data["generated_emails_scores"] = [(i, email_score) for i, email_score in enumerate(emails_scores)]
     state.data = data
     notify(state, "success", "Response received!")
 
@@ -92,7 +109,8 @@ def reset_chat(state: State) -> None:
     state.user_query = ""
     state.data = {
         "user_query": "",
-        "generated_response": ""
+        "generated_response": "",
+        "generated_emails_scores": "",
     }
     state.input_frozen = False
     state.selected_conv = None
@@ -126,6 +144,34 @@ def select_conv(state: State, var_name: str, value) -> None:
     state.input_frozen = True
     state.user_query = state.past_data[value[0][0]][1]["user_query"]
     state.data = state.past_data[value[0][0]][1]
+    # Reset the information for the individual e-mails
+    state.selected_email_id = None
+    state.selected_email = None
+
+def email_adapter(item: list) -> [str, str]:
+    """
+    Converts element of past_conversations to id and displayed string
+
+    Args:
+        item: element of past_conversations
+
+    Returns:
+        id and displayed string
+    """
+    email_id = item[0]
+    score = f"Score: {str(round(item[1][1], 3))} | {item[1][0][:20] + '...' if len(item[1][0]) > 20 else item[1][0]}"
+    return email_id, score
+
+def select_email(state: State, var_name: str, value) -> None:
+    """
+    Selects conversation from past_conversations
+
+    Args:
+        state: The current state of the app.
+        var_name: "selected_conv"
+        value: [[id, conversation]]
+    """
+    state.selected_email = state.data["generated_emails_scores"][value[0][0]][1][0]
 
 def select_workspace(state):
     state.show_dialog = True
@@ -141,6 +187,8 @@ def select_workspace(state):
             # We can let the user ask a question now that a path is selected
             state.input_frozen = False
 
+        # TODO: Send a request to create the database
+
 # For debugging
 # def on_exception(state, fct_name, e):
 #     notify(state, "error", f"Error in function {fct_name}: {e}")
@@ -155,53 +203,16 @@ def toggle_dialog(state, identifier, payload):
     else:
         state.dialog_success = True
 
-page = """
-<|{show_dialog}|title=WARNING|labels=Validate;Cancel|dialog|on_action=toggle_dialog
-Are you sure you want to load the data? Even if you have data loaded, this will rebuild the database, and might take a second!
-|>
 
-<|layout|columns=300px 1|
+def on_menu(state, action, info):
+    page = info["args"][0]
+    navigate(state, to=page)
 
-<|part|class_name=sidebar|
-# E-mai**LM**{: .color-primary} # {: .logo-text}
-<|Select Mail Directory|button|class_name=fullwidth plain|id=select_workspace_button|on_action=select_workspace|>
-<|part|render={mail_data_path is not None}|
-*Current e-mail data directory*: <|{mail_data_path}|>
-|>
-### Questions ### {: .h5 .mt2 .mb-half}
-<|part|render={len(past_data) > 0}|
-<|{selected_conv}|tree|lov={past_data}|class_name=past_prompts_list|multiple|adapter=tree_adapter|on_change=select_conv|>
-|>
-|>
 
-<|part|class_name=p2 align-item-top table scrollable|
-<|navbar|lov={[("home", "Home"), ("customize", "Customize")]}|>
-<|part|class_name=card mt1|
-### Question ### {: .h5 .mt2 .mb-half}
-<|part|render={mail_data_path is None}|
-**Please choose a mail data directory before proceeding with asking questions!**
-|>
-<|{user_query}|input|active={not input_frozen}|label=Write your question here...|on_action=send_question|class_name=fullwidth|change_delay=-1|>
-<|part|render={input_frozen and mail_data_path is not None}|
-<|Ask new question|button|class_name=fullwidth plain|id=reset_app_button|on_action=reset_chat|>
-|>
-|>
-
-<|part|render={data["generated_response"] != ""}|
-<|part|class_name=card mt1|
-### Response ### {: .h5 .mt2 .mb-half}
-<|{data["generated_response"]}|>
-|>
-
-<|part|class_name=card mt1|
-### Corresponding e-mails ### {: .h5 .mt2 .mb-half}
-<|{data["generated_response"]}|>
-|>
-|>
-|>
-
-|>
-"""
+pages = {
+    "home": home_page,
+    "customize": customize_page,
+}
 
 if __name__ == "__main__":
     if "OPENAI_API_KEY" in os.environ:
@@ -215,4 +226,4 @@ if __name__ == "__main__":
 
     client = openai.Client(api_key=api_key)
 
-    Gui(page).run(debug=True, dark_mode=True, use_reloader=True, title="📧 E-maiLM")
+    Gui(pages=pages).run(debug=True, dark_mode=True, use_reloader=True, title="📧 E-maiLM")

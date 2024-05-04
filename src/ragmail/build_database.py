@@ -10,6 +10,8 @@ from langchain_ai21 import AI21SemanticTextSplitter
 from src.ragmail.parsing import JsonEmailParser
 from src.ragmail.rag import get_embeddings
 
+CONNECTION_STRING = "iris://demo:demo@localhost:1972/USER"
+
 def chunking(df: pd.DataFrame) -> pd.DataFrame:
     chunked_data = []
     splitter = AI21SemanticTextSplitter(chunk_size=800, chunk_overlap=100)
@@ -23,15 +25,21 @@ def chunking(df: pd.DataFrame) -> pd.DataFrame:
             chunked_data.append(chunked_row)
     return pd.DataFrame(chunked_data)
 
+
+def table_exists(table_name: str) -> bool:
+    engine = sqlalchemy.create_engine(CONNECTION_STRING)
+    inspector = sqlalchemy.inspect(engine)
+    return inspector.has_table(table_name)
+
+
 def create_db(data_path, table_name='test'):
     # Config.
-    connection_string = "iris://demo:demo@localhost:1972/USER"
     data_dir = Path(data_path)
     embeddings_dim = 1536  # openai text-embedding-3-small
 
     # Make database.
     # to, from, subject, date, text, thead_id, email_id
-    engine = sqlalchemy.create_engine(connection_string)
+    engine = sqlalchemy.create_engine(CONNECTION_STRING)
     print("Creating database")
     with engine.connect() as conn:
         with conn.begin():
@@ -88,4 +96,5 @@ def create_db(data_path, table_name='test'):
 
 if __name__ == "__main__":
     load_dotenv()
-    create_db('../../data/emails')
+    #create_db('../../data/emails')
+    print(table_exists("ShazList2131"))

@@ -1,10 +1,9 @@
 import pandas as pd
 import sqlalchemy
-from openai import OpenAI
 from dotenv import load_dotenv
+from openai import OpenAI
 
-from rag import get_embeddings
-
+from src.ragmail.rag import get_embeddings
 
 CONNECTION_STRING = "iris://demo:demo@localhost:1972/USER"
 TEMPLATE = (
@@ -18,7 +17,7 @@ TEMPLATE = (
 
 
 def get_response(query: str, contexts: list[str],
-                 model: str = "gpt-3.5-turbo") -> str:
+                 model: str = "gpt-4-turbo-preview") -> str:
 
     assert len(contexts) > 0, "Can't answer without context lol"
     context = "-----\n".join(contexts)
@@ -27,7 +26,7 @@ def get_response(query: str, contexts: list[str],
     response = client.chat.completions.create(
         model=model,
         messages=[
-            {"role": "system", "content": "You are a helpful assistant. You may only respond questions using information from the context provided."},
+            # {"role": "system", "content": "You are a helpful assistant. You may only respond questions using information from the context provided."},
             {"role": "user", "content": prompt}
         ]
     )
@@ -49,7 +48,7 @@ def query_db(table_name: str, prompt: str, filters=None) -> pd.DataFrame:
     with engine.connect() as conn:
         with conn.begin():
             sql = sqlalchemy.text(f"""
-                SELECT TOP 3 *, VECTOR_DOT_PRODUCT(embeddings, TO_VECTOR(:search_vector)) AS score
+                SELECT TOP 8 *, VECTOR_DOT_PRODUCT(embeddings, TO_VECTOR(:search_vector)) AS score
                 FROM {table_name}
                 ORDER BY score DESC
             """)
@@ -58,6 +57,23 @@ def query_db(table_name: str, prompt: str, filters=None) -> pd.DataFrame:
             context = results.fetchall()
     return pd.DataFrame(context, columns=columns)
 
+
+def query(table_name: str, prompt: str, filters=None) -> tuple[str, list[tuple[str, float]]]:
+    print(table_name, prompt, filters)
+    context = query_db(table_name, prompt, filters)
+    generated_response = get_response(prompt, context['chunk_text'].tolist())
+
+    referenced_context = []
+    for _, row in context.iterrows():
+        formatted_chunk = (f"Sender: {row['sender']}\n" +
+                           f"Recipient: {row['recipient']}\n" +
+                           f"Date: {row['email_date']}\n" +
+                           f"Subject: {row['subject']}\n\n" +
+                           f"Referenced text:\n\"{row['chunk_text']}\"")
+
+        referenced_context.append((formatted_chunk, row['score']))
+
+    return generated_response, referenced_context
 
 if __name__ == "__main__":
     load_dotenv()

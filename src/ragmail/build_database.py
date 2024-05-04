@@ -8,12 +8,12 @@ from dotenv import load_dotenv
 from openai import OpenAI
 from langchain_ai21 import AI21SemanticTextSplitter
 
-from parsing import JsonEmailParser
-from rag import get_embeddings
+from src.ragmail.parsing import JsonEmailParser
+from src.ragmail.rag import get_embeddings
 
 def chunking(df: pd.DataFrame) -> pd.DataFrame:
     chunked_data = []
-    splitter = AI21SemanticTextSplitter()
+    splitter = AI21SemanticTextSplitter(chunk_size=800, chunk_overlap=100)
     for i, row in df.iterrows():
         chunks = splitter.split_text(row["text"])
         print(f"Document {i} chunked into {len(chunks)} parts")
@@ -40,7 +40,6 @@ def create_db(data_path, table_name='test'):
     df = chunking(df)
 
     # Add embeddings.
-    df = df.iloc[:5, :]  # avoid too many api calls until we go into production
     df["embeddings"] = list(map(get_embeddings, tqdm(df["chunk_text"], desc="Getting embeddings")))
     print(df.keys())
     print(df)
@@ -88,4 +87,4 @@ def create_db(data_path, table_name='test'):
 
 if __name__ == "__main__":
     load_dotenv()
-    create_db('data/emails')
+    create_db('../../data/emails')

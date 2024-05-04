@@ -69,22 +69,22 @@ def query_db(table_name: str, prompt: str, filters=None) -> pd.DataFrame:
 
 
 def query(table_name: str, prompt: str, filters=None) -> tuple[str, list[tuple[str, float]]]:
-    def get_cos(row: pd.StringDtype) -> float:
-        embeddings = list(map(float, row["embeddings"].split(",")))
-        return cosine_similarity(embeddings, response_embedding)
+    # def get_cos(row: pd.StringDtype) -> float:
+    #     embeddings = list(map(float, row["embeddings"].split(",")))
+    #     return cosine_similarity(embeddings, response_embedding)
 
 
     print(table_name, prompt, filters)
     context = query_db(table_name, prompt, filters)
     generated_response = get_response(prompt, context['chunk_text'].tolist())
 
-    response_embedding = get_embeddings(generated_response)
-    # replace scores with the similarity score of each chunk to the generated response
-    context["score"] = context.apply(get_cos, axis=1)
-    context = context.sort_values(by=["score"], ascending=False)
+    # response_embedding = get_embeddings(generated_response)
+    # # replace scores with the similarity score of each chunk to the generated response
+    # context["score"] = context.apply(get_cos, axis=1)
+    # context = context.sort_values(by=["score"], ascending=False)
 
     referenced_context = []
-    for _, row in context.iterrows():
+    for idx, row in context.iterrows():
         formatted_chunk = (f"Sender: {row['sender']}\n" +
                            f"Recipient: {row['recipient']}\n" +
                            f"Date: {row['email_date']}\n" +

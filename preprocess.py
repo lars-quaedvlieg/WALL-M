@@ -9,7 +9,7 @@ from openai import OpenAI
 from langchain_ai21 import AI21SemanticTextSplitter
 
 from parsing import JsonEmailParser
-
+from rag import get_embeddings
 
 def chunking(df: pd.DataFrame) -> pd.DataFrame:
     chunked_data = []
@@ -24,22 +24,15 @@ def chunking(df: pd.DataFrame) -> pd.DataFrame:
             chunked_data.append(chunked_row)
     return pd.DataFrame(chunked_data)
 
-
-def get_embeddings(text: str, model: str = "text-embedding-3-small") -> list[float]:
-    client = OpenAI()
-    text = text.replace("\n", " ")
-    return client.embeddings.create(input=[text], model=model).data[0].embedding
-
-
-def main():
+def create_db(data_path, table_name='test'):
     # Config.
-    table_name = "dummy2"
     connection_string = "iris://demo:demo@localhost:1972/USER"
-    data_dir = Path("data/emails")
+
+    data_dir = Path(data_path)
+
     embeddings_dim = 1536  # openai text-embedding-3-small
 
     # Get raw dataframe.
-    data_dir = Path("data/emails")
     email_parser = JsonEmailParser(data_dir)
     df = email_parser.parse()
 
@@ -83,7 +76,7 @@ def main():
         with conn.begin():
             for _, row in df.iterrows():
                 sql = sqlalchemy.text(f"""
-                    INSERT INTO {table_name} 
+                    INSERT INTO {table_name}
                     (email_id, thread_id, chunk_id, subject, sender, recipient, email_date, text, chunk_text, embeddings)
                     VALUES (:email_id, :thread_id, :chunk_id, :subject, :sender, :recipient, :email_date, :text, :chunk_text, TO_VECTOR(:embeddings))
                 """)
@@ -91,7 +84,8 @@ def main():
                 data = {key: str(value) for key, value in data.items()}
                 conn.execute(sql, data)
 
+    return table_name
 
 if __name__ == "__main__":
     load_dotenv()
-    main()
+    create_db('data/emails')

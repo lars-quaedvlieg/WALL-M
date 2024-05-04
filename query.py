@@ -21,9 +21,7 @@ def get_response(query: str, context: list[str]) -> str:
 
 
 
-
-
-def query(table_name: str, prompt: str, filters=None) -> pd.DataFrame:
+def query_db(table_name: str, prompt: str, filters=None) -> pd.DataFrame:
 
     # Config.
     connection_string = "iris://demo:demo@localhost:1972/USER"
@@ -45,6 +43,24 @@ def query(table_name: str, prompt: str, filters=None) -> pd.DataFrame:
             columns = results.keys()
             context = results.fetchall()
     return pd.DataFrame(context, columns=columns)
+
+
+def query(table_name: str, prompt: str, filters=None) -> tuple[str, list[tuple[str, float]]]:
+
+    context = query_db(table_name, prompt, filters)
+    generated_response = get_response(prompt, context['chunk_text'].tolist())
+
+    referenced_context = []
+    for _, row in df.iterrows():
+        formatted_chunk = (f"Sender: {row['sender']}\n" +
+                        f"Recipient: {row['recipient']}\n" +
+                        f"Date: {row['email_date']}\n" +
+                        f"Subject: {row['subject']}\n\n" +
+                        f"Referenced text:\n\"{row['chunk_text']}\"")
+
+        referenced_context.append((formatted_chunk, row['score']))
+
+    return generated_response, referenced_context
 
 
 if __name__ == "__main__":

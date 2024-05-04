@@ -5,7 +5,6 @@ import pandas as pd
 import sqlalchemy
 from tqdm.auto import tqdm
 from dotenv import load_dotenv
-from openai import OpenAI
 from langchain_ai21 import AI21SemanticTextSplitter
 
 from src.ragmail.parsing import JsonEmailParser
@@ -65,9 +64,10 @@ def create_db(data_path, table_name='test'):
             )
                     """
             try:
-                result = conn.execute(sqlalchemy.text(sql))
+                conn.execute(sqlalchemy.text(sql))
             except sqlalchemy.exc.DatabaseError:
-                warnings.warn(f"Database {table_name} already exists lol")
+                warnings.warn(f"Database {table_name} already exists, skipping.")
+                return table_name
 
     # Insert data.
     print("Inserting data into database")

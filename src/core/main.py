@@ -8,8 +8,10 @@ from taipy.gui import Gui, State, notify, navigate
 
 from src.core.page_markdowns.customize import customize_page
 from src.core.page_markdowns.home import home_page
-from src.ragmail.build_database import create_db
+from src.ragmail.build_database import create_db, table_exists
 from src.ragmail.query import get_senders, query
+
+TABLE_NAME = "ShazList6"
 
 client = None
 
@@ -188,13 +190,14 @@ def select_workspace(state):
         if type(mail_path) is str:
             notify(state, "info", "Creating the database...")
             state.mail_data_path = mail_path
-            # We can let the user ask a question now that a path is selected
-            state.input_frozen = False
 
             # Create database
-            state.table_name = create_db(data_path=state.mail_data_path, table_name="ShazList5")
+            state.table_name = TABLE_NAME
+            if not table_exists(state.table_name):
+                create_db(data_path=state.mail_data_path, table_name=state.table_name)
 
-            # TODO: Add blocking call
+            # We can let the user ask a question now that a path is selected
+            state.input_frozen = False
 
             # We can now get a list of people's names that we have e-mails from
             state.people_names = list(get_senders(table_name=state.table_name))

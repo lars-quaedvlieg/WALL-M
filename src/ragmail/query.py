@@ -16,6 +16,7 @@ SYSTEM_PROMPT = (
     "Accurate answers will be rewarded to promote meticulous response formulation."
     "Hallucination of information that isn't in the data will be punished appropriately."
     "Most importantly, tag each of your claims with the correct source chronologically. For example, if you use facts from the first source, you end with a [1], etc."
+    "If there are two or more citations in one sentence, make sure to write them separately (e.g. [1][2])."
 )
 
 TEMPLATE = (
@@ -104,22 +105,24 @@ def query_db(table_name: str, prompt: str, filters: dict[str, Any]) -> pd.DataFr
 def fix_citations(response: str, context: pd.DataFrame) -> tuple[str, pd.DataFrame]:
     # Get mapping.
     citation_map = {}
-    appear_id = 0
-    for i in response.index:
-        if f"[{i}]" in response:
-            citation_map[i] = appear_id
+    appear_id = 1
+    for i in context.index:
+        if f"[{i+1}]" in response:
+            citation_map[i+1] = appear_id
             appear_id += 1
 
     # Remap.
+    print(citation_map)
     for old_id, new_id in citation_map.items():
-        context = context.drop(index=old_id)
         old_response = ""
         while old_response != response:
             old_response = response
             response = response.replace(f"[{old_id}]", f"[{new_id}]")
+    context = context.iloc[list(citation_map), :]
     context = context.reset_index()
+    print("New context", context)
     return response, context
-    
+
 
 def query(table_name: str, prompt: str, filters: dict[str, Any]) -> tuple[str, list[tuple[str, float]]]:
 
@@ -142,7 +145,7 @@ def query(table_name: str, prompt: str, filters: dict[str, Any]) -> tuple[str, l
         formatted_chunk = (f"Sender: {row['sender']}\n" +
                            f"Recipient: {row['recipient']}\n" +
                            f"Date: {row['email_date']}\n" +
-                           f"Subject: {row['subject']}\n\n" +
+                           f"Subject: {row['subject']}\n" +
                            f"Score: {row['score']}\n\n" +
                            f"Referenced text:\n\"{row['chunk_text']}\"")
 

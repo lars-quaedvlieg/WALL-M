@@ -1,19 +1,23 @@
 import os
 import sys
 import traceback
+from tkinter.filedialog import askdirectory
 
 import openai
 from taipy.gui import Gui, State, notify
 
 client = None
+
+# App state
 user_query = ""
 data = {
     "user_query": "",
     "generated_response": "",
 }
-input_frozen = False
+input_frozen = True
 past_data = []
 selected_conv = None
+mail_data_path = None
 
 def on_init(state: State) -> None:
     """
@@ -26,8 +30,9 @@ def on_init(state: State) -> None:
     state.data["user_query"] = ""
     state.data["generated_response"] = ""
     state.past_data = []
-    state.input_frozen = False
+    state.input_frozen = True
     state.selected_conv = None
+    state.mail_data_path = None
 
 def request(state: State) -> str:
     """
@@ -62,8 +67,8 @@ def send_question(state: State) -> None:
     notify(state, "info", "Sending message...")
     answer = request(state) #.replace("\n", "")
     data = state.data._dict.copy()
-    data["user_query"] += state.user_query
-    data["generated_response"] += answer
+    data["user_query"] = state.user_query
+    data["generated_response"] = answer
     state.data = data
     notify(state, "success", "Response received!")
 
@@ -73,18 +78,6 @@ def send_question(state: State) -> None:
     reset_chat(state)
 
 
-def on_exception(state, function_name: str, ex: Exception) -> None:
-    """
-    Catches exceptions and notifies user in Taipy GUI
-
-    Args:
-        state (State): Taipy GUI state
-        function_name (str): Name of function where exception occured
-        ex (Exception): Exception
-    """
-    notify(state, "error", f"An error occured in {function_name}: {ex}")
-
-
 def reset_chat(state: State) -> None:
     """
     Reset the chat by clearing the conversation.
@@ -92,7 +85,6 @@ def reset_chat(state: State) -> None:
     Args:
         - state: The current state of the app.
     """
-    print(f'Called with {state.data._dict}')
     state.user_query = ""
     state.data = {
         "user_query": "",
@@ -100,7 +92,6 @@ def reset_chat(state: State) -> None:
     }
     state.input_frozen = False
     state.selected_conv = None
-
 
 def tree_adapter(item: list) -> [str, str]:
     """
@@ -120,7 +111,6 @@ def tree_adapter(item: list) -> [str, str]:
 
 
 def select_conv(state: State, var_name: str, value) -> None:
-    print(var_name)
     """
     Selects conversation from past_conversations
 
@@ -132,6 +122,13 @@ def select_conv(state: State, var_name: str, value) -> None:
     state.input_frozen = True
     state.user_query = state.past_data[value[0][0]][1]["user_query"]
     state.data = state.past_data[value[0][0]][1]
+
+def select_workspace(state):
+    mail_path = askdirectory(title='Select Folder')
+    if type(mail_path) is str:
+        state.mail_data_path = mail_path
+        # We can let the user ask a question now that a path is selected
+        state.input_frozen = False
 
 # For debugging
 # def on_exception(state, fct_name, e):
@@ -145,23 +142,38 @@ page = """
 
 <|part|class_name=sidebar|
 # E-mai**LM**{: .color-primary} # {: .logo-text}
-<|Select Mail Directory|button|class_name=fullwidth plain|id=select_workspace_button|on_action=reset_chat|>
+<|Select Mail Directory|button|class_name=fullwidth plain|id=select_workspace_button|on_action=select_workspace|>
+<|part|render={mail_data_path is not None}|
+*Current e-mail data directory*: <|{mail_data_path}|>
+|>
 ### Questions ### {: .h5 .mt2 .mb-half}
+<|part|render={len(past_data) > 0}|
 <|{selected_conv}|tree|lov={past_data}|class_name=past_prompts_list|multiple|adapter=tree_adapter|on_change=select_conv|>
+|>
 |>
 
 <|part|class_name=p2 align-item-top table scrollable|
 <|part|class_name=card mt1|
 ### Question ### {: .h5 .mt2 .mb-half}
+<|part|render={mail_data_path is None}|
+**Please choose a mail data directory before proceeding with asking questions!**
+|>
 <|{user_query}|input|active={not input_frozen}|label=Write your question here...|on_action=send_question|class_name=fullwidth|change_delay=-1|>
-<|part|render={input_frozen}|
+<|part|render={input_frozen and mail_data_path is not None}|
 <|Ask new question|button|class_name=fullwidth plain|id=reset_app_button|on_action=reset_chat|>
 |>
 |>
 
+<|part|render={data["generated_response"] != ""}|
 <|part|class_name=card mt1|
 ### Response ### {: .h5 .mt2 .mb-half}
 <|{data["generated_response"]}|>
+|>
+
+<|part|class_name=card mt1|
+### Corresponding e-mails ### {: .h5 .mt2 .mb-half}
+<|{data["generated_response"]}|>
+|>
 |>
 |>
 

@@ -26,7 +26,7 @@ def get_response(query: str, contexts: list[str],
     response = client.chat.completions.create(
         model=model,
         messages=[
-            # {"role": "system", "content": "You are a helpful assistant. You may only respond questions using information from the context provided."},
+            {"role": "system", "content": "You are a helpful assistant. You may only respond questions using information from the context provided."},
             {"role": "user", "content": prompt}
         ]
     )

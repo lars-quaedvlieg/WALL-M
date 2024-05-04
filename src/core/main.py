@@ -12,8 +12,11 @@ client = None
 
 # App state
 user_query = ""
+filter_dates = ""
 data = {
     "user_query": "",
+    "filter_names": [],
+    "datetime_ranges": [],
     "generated_response": "",
     "generated_emails_scores": "",
 }
@@ -25,6 +28,10 @@ show_dialog = False
 dialog_success = False
 selected_email = None
 selected_email_id = None
+logo_image = None
+filter_names = None
+people_names = None
+# TODO: Add table name
 
 def on_init(state: State) -> None:
     """
@@ -33,11 +40,15 @@ def on_init(state: State) -> None:
     Args:
         - state: The current state of the app.
     """
+    state.logo_image = os.path.join(os.getcwd(), "res", "logo.png")
     state.show_dialog = False
     state.user_query = ""
+    state.filter_dates = ""
     state.data["user_query"] = ""
     state.data["generated_response"] = ""
     state.data["generated_emails_scores"] = ""
+    state.data["datetime_ranges"] = []
+    state.data["filter_names"] = []
     state.past_data = []
     state.input_frozen = True
     state.selected_conv = None
@@ -45,7 +56,7 @@ def on_init(state: State) -> None:
     state.dialog_success = False
     state.selected_email = None
     state.selected_email_id = None
-
+    state.people_names = None
 
 def request(state: State) -> tuple[str, list[tuple[str, float]]]:
     """
@@ -67,11 +78,12 @@ def request(state: State) -> tuple[str, list[tuple[str, float]]]:
     #     ],
     #     model="gpt-4-turbo-preview",
     # )
+    print(state.filter_dates, state.filter_names, state.user_query)
     response, emails_scores = (
         "This has turned fun " + state.user_query,
         [
-            (r"Fun is this\\" + state.user_query, 0.9),
-            (r"We like fun\\" + state.user_query, 0.8)
+            ("Fun is this\n\n\n\n\n\n\n\n\n\n\n\n\n\nHi" + state.user_query, 0.9),
+            ("We like fun" + state.user_query, 0.8)
         ]
     )
     return response, emails_scores  # response.choices[0].message.content
@@ -85,9 +97,12 @@ def send_question(state: State) -> None:
         - state: The current state of the app.
     """
     notify(state, "info", "Sending message...")
+    print(state.user_query)
     response, emails_scores = request(state) #.replace("\n", "")
     data = state.data._dict.copy()
     data["user_query"] = state.user_query
+    data["datetime_ranges"] = state.filter_dates
+    data["filter_names"] = state.filter_names
     data["generated_response"] = response
     data["generated_emails_scores"] = [(i, email_score) for i, email_score in enumerate(emails_scores)]
     state.data = data
@@ -109,6 +124,8 @@ def reset_chat(state: State) -> None:
     state.user_query = ""
     state.data = {
         "user_query": "",
+        "filter_names": [],
+        "datetime_ranges": [],
         "generated_response": "",
         "generated_emails_scores": "",
     }
@@ -159,7 +176,7 @@ def email_adapter(item: list) -> [str, str]:
         id and displayed string
     """
     email_id = item[0]
-    score = f"Score: {str(round(item[1][1], 3))} | {item[1][0][:20] + '...' if len(item[1][0]) > 20 else item[1][0]}"
+    score = f"Score: {item[1][0][:30] + '...' if len(item[1][0]) > 30 else item[1][0]}"
     return email_id, score
 
 def select_email(state: State, var_name: str, value) -> None:
@@ -187,7 +204,10 @@ def select_workspace(state):
             # We can let the user ask a question now that a path is selected
             state.input_frozen = False
 
-        # TODO: Send a request to create the database
+            # We can now get a list of people's names that we have e-mails from
+            state.people_names = ["Lars", "Not Lars"]
+
+            # TODO: Send a request to create the database
 
 # For debugging
 # def on_exception(state, fct_name, e):
@@ -226,4 +246,4 @@ if __name__ == "__main__":
 
     client = openai.Client(api_key=api_key)
 
-    Gui(pages=pages).run(debug=True, dark_mode=True, use_reloader=True, title="📧 E-maiLM")
+    Gui(pages=pages).run(debug=True, dark_mode=True, use_reloader=True, title="E-maiLM")

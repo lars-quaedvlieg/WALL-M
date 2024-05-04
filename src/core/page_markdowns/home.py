@@ -24,7 +24,11 @@ Are you sure you want to load the data? Even if you have data loaded, this will 
 <|part|render={mail_data_path is None}|
 **Please choose a mail data directory before proceeding with asking questions!**
 |>
-<|{user_query}|input|active={not input_frozen}|label=Write your question here...|on_action=send_question|class_name=fullwidth|change_delay=-1|>
+<|{user_query}|input|active={not input_frozen}|label=Write your question here... (Press ENTER to submit)|on_action=send_question|class_name=fullwidth|change_delay=-1|>
+<|part|render={mail_data_path is not None}|
+<|{filter_dates}|date_range|>
+<|{filter_names}|selector|multiple|label=Get e-mails from|lov={people_names}|dropdown|>
+|>
 <|part|render={input_frozen and mail_data_path is not None}|
 <|Ask new question|button|class_name=fullwidth plain|id=reset_app_button|on_action=reset_chat|>
 |>
@@ -42,7 +46,7 @@ Are you sure you want to load the data? Even if you have data loaded, this will 
 <|part|render={len(data["generated_emails_scores"]) > 0}|
 <|{selected_email_id}|tree|class_name=past_prompts_list|lov={data["generated_emails_scores"]}|multiple|adapter=email_adapter|on_change=select_email|>
 |>
-<|{selected_email}|>
+<|{selected_email}|input|multiline|class_name=fullwidth scrollable-input|active=false|>
 |>
 |>
 |>

@@ -14,7 +14,7 @@ class EmailParser(ABC):
         self.folder_path = folder_path
 
     @abstractmethod
-    def parse_emails(self) -> Optional[DataFrame]:
+    def parse(self) -> Optional[DataFrame]:
         """
         Extract email bodies and metadata from a folder of emails as a table
 

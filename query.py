@@ -6,6 +6,7 @@ from dotenv import load_dotenv
 from rag import get_embeddings
 
 
+CONNECTION_STRING = "iris://demo:demo@localhost:1972/USER"
 TEMPLATE = (
     "We have provided context information below. \n"
     "---------------------\n"
@@ -33,16 +34,20 @@ def get_response(query: str, contexts: list[str],
     return response.choices[0].message.content
 
 
-def query(table_name: str, prompt: str, filters=None) -> pd.DataFrame:
-    # Config.
-    connection_string = "iris://demo:demo@localhost:1972/USER"
-    search_vector = get_embeddings(prompt)  # Convert search phrase into a vector.
-
-    # Query.
-    engine = sqlalchemy.create_engine(connection_string)
+def get_senders(table_name: str) -> set[str]:
+    engine = sqlalchemy.create_engine(CONNECTION_STRING)
     with engine.connect() as conn:
         with conn.begin():
-                #SELECT TOP 3 *, VECTOR_COSINE(embeddings, TO_VECTOR(:search_vector)) AS score
+            sql = sqlalchemy.text(f"SELECT DISTINCT sender FROM {table_name}")
+            results = conn.execute(sql).fetchall()
+    return {result.lower() for result, in results}
+
+
+def query(table_name: str, prompt: str, filters=None) -> pd.DataFrame:
+    search_vector = get_embeddings(prompt)  # Convert search phrase into a vector.
+    engine = sqlalchemy.create_engine(CONNECTION_STRING)
+    with engine.connect() as conn:
+        with conn.begin():
             sql = sqlalchemy.text(f"""
                 SELECT TOP 3 *, VECTOR_DOT_PRODUCT(embeddings, TO_VECTOR(:search_vector)) AS score
                 FROM {table_name}
@@ -56,9 +61,11 @@ def query(table_name: str, prompt: str, filters=None) -> pd.DataFrame:
 
 if __name__ == "__main__":
     load_dotenv()
-    response = get_response("What is 2x2?", ["Scientists recently discovered that 2x2=5"])
-    print(response)
+
+    print(get_senders("dummy2"))
+
+    #response = get_response("What is 2x2?", ["Scientists recently discovered that 2x2=5"])
+    #print(response)
+
     #res = query("dummy2", "fuck you lol")
     #print(res)
-    #print(len(res))
-    #print("\n\n".join(map(str, res)))

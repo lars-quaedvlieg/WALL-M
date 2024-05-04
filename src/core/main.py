@@ -161,7 +161,7 @@ def email_adapter(item: list) -> [str, str]:
         id and displayed string
     """
     email_id = item[0]
-    print(item[1][1])
+    print("printttttttttttt", item[1][1])
     score = f"{item[1][0][:30] + '...' if len(item[1][0]) > 30 else item[1][0]}"
     return email_id, score
 

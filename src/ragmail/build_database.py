@@ -5,7 +5,6 @@ import pandas as pd
 import sqlalchemy
 from tqdm.auto import tqdm
 from dotenv import load_dotenv
-from openai import OpenAI
 from langchain_ai21 import AI21SemanticTextSplitter
 
 from src.ragmail.parsing import JsonEmailParser
@@ -27,22 +26,8 @@ def chunking(df: pd.DataFrame) -> pd.DataFrame:
 def create_db(data_path, table_name='test'):
     # Config.
     connection_string = "iris://demo:demo@localhost:1972/USER"
-
     data_dir = Path(data_path)
-
     embeddings_dim = 1536  # openai text-embedding-3-small
-
-    # Get raw dataframe.
-    email_parser = JsonEmailParser(data_dir)
-    df = email_parser.parse()
-
-    # Get chunks.
-    df = chunking(df)
-
-    # Add embeddings.
-    df["embeddings"] = list(map(get_embeddings, tqdm(df["chunk_text"], desc="Getting embeddings")))
-    print(df.keys())
-    print(df)
 
     # Make database.
     # to, from, subject, date, text, thead_id, email_id
@@ -65,9 +50,24 @@ def create_db(data_path, table_name='test'):
             )
                     """
             try:
-                result = conn.execute(sqlalchemy.text(sql))
+                conn.execute(sqlalchemy.text(sql))
             except sqlalchemy.exc.DatabaseError:
-                warnings.warn(f"Database {table_name} already exists lol")
+                warnings.warn(f"Database {table_name} already exists, skipping.")
+                return table_name
+
+
+
+    # Get raw dataframe.
+    email_parser = JsonEmailParser(data_dir)
+    df = email_parser.parse()
+
+    # Get chunks.
+    df = chunking(df)
+
+    # Add embeddings.
+    df["embeddings"] = list(map(get_embeddings, tqdm(df["chunk_text"], desc="Getting embeddings")))
+    print(df.keys())
+    print(df)
 
     # Insert data.
     print("Inserting data into database")
@@ -82,6 +82,7 @@ def create_db(data_path, table_name='test'):
                 data = dict(row)
                 data = {key: str(value) for key, value in data.items()}
                 conn.execute(sql, data)
+    print("Done")
 
     return table_name
 

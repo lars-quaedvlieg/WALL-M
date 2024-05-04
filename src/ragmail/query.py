@@ -3,7 +3,7 @@ import sqlalchemy
 from dotenv import load_dotenv
 from openai import OpenAI
 
-from src.ragmail.rag import get_embeddings
+from src.ragmail.rag import get_embeddings, cosine_similarity
 
 CONNECTION_STRING = "iris://demo:demo@localhost:1972/USER"
 TEMPLATE = (
@@ -59,9 +59,19 @@ def query_db(table_name: str, prompt: str, filters=None) -> pd.DataFrame:
 
 
 def query(table_name: str, prompt: str, filters=None) -> tuple[str, list[tuple[str, float]]]:
+    def get_cos(row: pd.StringDtype) -> float:
+        embeddings = list(map(float, row["embeddings"].split(",")))
+        return cosine_similarity(embeddings, response_embedding)
+
+
     print(table_name, prompt, filters)
     context = query_db(table_name, prompt, filters)
     generated_response = get_response(prompt, context['chunk_text'].tolist())
+
+    response_embedding = get_embeddings(generated_response)
+    # replace scores with the similarity score of each chunk to the generated response
+    context["score"] = context.apply(get_cos, axis=1)
+    context = context.sort_values(by=["score"], ascending=False)
 
     referenced_context = []
     for _, row in context.iterrows():
@@ -71,7 +81,7 @@ def query(table_name: str, prompt: str, filters=None) -> tuple[str, list[tuple[s
                            f"Subject: {row['subject']}\n\n" +
                            f"Referenced text:\n\"{row['chunk_text']}\"")
 
-        referenced_context.append((formatted_chunk, row['score']))
+        referenced_context.append((formatted_chunk, row["score"]))
 
     return generated_response, referenced_context
 

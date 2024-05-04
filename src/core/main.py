@@ -8,8 +8,10 @@ from taipy.gui import Gui, State, notify, navigate
 
 from src.core.page_markdowns.customize import customize_page
 from src.core.page_markdowns.home import home_page
-from src.ragmail.build_database import create_db
+from src.ragmail.build_database import create_db, table_exists
 from src.ragmail.query import get_senders, query
+
+TABLE_NAME = "ShazList6"
 
 client = None
 
@@ -161,7 +163,7 @@ def email_adapter(item: list) -> [str, str]:
         id and displayed string
     """
     email_id = item[0]
-    print(item[1][1])
+    print("printttttttttttt", item[1][1])
     score = f"{item[1][0][:30] + '...' if len(item[1][0]) > 30 else item[1][0]}"
     return email_id, score
 
@@ -186,19 +188,20 @@ def select_workspace(state):
     if state.dialog_success:
         mail_path = askdirectory(title='Select Folder')
         if type(mail_path) is str:
-            # TODO: Show loader
+            notify(state, "info", "Creating the database...")
             state.mail_data_path = mail_path
+
+            # Create database
+            state.table_name = TABLE_NAME
+            if not table_exists(state.table_name):
+                create_db(data_path=state.mail_data_path, table_name=state.table_name)
+
             # We can let the user ask a question now that a path is selected
             state.input_frozen = False
 
-            # Create database
-            state.table_name = create_db(data_path=state.mail_data_path, table_name="ShazList0")
-
-            # TODO: Add blocking call
-
             # We can now get a list of people's names that we have e-mails from
             state.people_names = list(get_senders(table_name=state.table_name))
-            # TODO: Notify success
+            notify(state, "success", "Created the database!")
 
 
 # For debugging

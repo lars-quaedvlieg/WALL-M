@@ -7,6 +7,8 @@ from dotenv import load_dotenv
 from openai import OpenAI
 from langchain_ai21 import AI21SemanticTextSplitter
 
+from parsing import JsonEmailParser
+
 
 def chunking(df: pd.DataFrame) -> pd.DataFrame:
     chunked_data = []
@@ -29,11 +31,18 @@ def get_embeddings(text: str, model: str = "text-embedding-3-small") -> list[flo
 
 
 def main():
+    # Config.
+    table_name = "dummy1"
+    connection_string = "iris://demo:demo@localhost:1972/USER"
+    data_dir = Path("data/emails")
+    embeddings_dim = 1536  # openai text-embedding-3-small
+
     # Get raw dataframe.
     data = []
     data_dir = Path("data/emails")
     email_parser = JsonEmailParser(data_dir)
     df = email_parser.parse()
+
     # Get chunks.
     df = chunking(df)
     print(df)
@@ -49,11 +58,11 @@ def main():
             thread_id INT,
             chunk_id INT,
             subject VARCHAR(255),
-            to VARCHAR(255),
-            from VARCHAR(255),
-            date DATETIME,
-            text VARCHAR(255),
-            chunk_text VARCHAR(255),
+            sender VARCHAR(255),
+            recipient VARCHAR(255),
+            email_date DATETIME,
+            text VARCHAR(3000),
+            chunk_text VARCHAR(3000),
             embeddings VECTOR(DOUBLE, {embeddings_dim})
             )
                     """
@@ -65,8 +74,8 @@ def main():
             for _, row in df.iterrows():
                 sql = sqlalchemy.text("""
                     INSERT INTO scotch_reviews 
-                    (email_id, thread_id, chunk_id, subject, to, from, date, text, chunk_text, embeddings)
-                    VALUES (:email_id, :thread_id, :chunk_id, :subject, :to, :from, :date, :text, :chunk_text, TO_VECTOR(:embeddings))
+                    (email_id, thread_id, chunk_id, subject, sender, recipient, email_date, text, chunk_text, embeddings)
+                    VALUES (:email_id, :thread_id, :chunk_id, :subject, :sender, :recipient, :email_date, :text, :chunk_text, TO_VECTOR(:embeddings))
                 """)
                 data = dict(row)
                 data = {key: str(value) for key, value in data.items()}

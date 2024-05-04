@@ -1,27 +1,39 @@
+import numpy as np
 import openai
 import time
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
-import random
+
+import sys
+import os
 
 # Set your OpenAI API key here
-openai.api_key = 'your-api-key'
+if "OPENAI_API_KEY" in os.environ:
+    openai.api_key = os.environ["OPENAI_API_KEY"]
+elif len(sys.argv) > 1:
+    openai.api_key = sys.argv[1]
+else:
+    raise ValueError(
+        "Please provide the OpenAI API key as an environment variable OPENAI_API_KEY or as a command line argument."
+    )
 
 
 def generate_email_body(topic, previous_emails=None):
     prompt = f"Write an email about {topic} in the financial domain."
     if previous_emails:
-        prompt += " This email is a follow-up to previous discussions:\n" + previous_emails
-    # response = openai.Completion.create(
-    #     engine="text-davinci-003",
-    #     prompt=prompt,
-    #     max_tokens=500,
-    #     temperature=0.7,
-    #     top_p=1,
-    #     frequency_penalty=0,
-    #     presence_penalty=0
-    # )
-    return f"hello world! {0 if previous_emails is None else len(previous_emails)}" # response.choices[0].text.strip()
+        prompt += " This email is a follow-up to previous discussions, with the most recent e-mails on the bottom:\n" + previous_emails
+
+    response = openai.ChatCompletion.create(
+        model="gpt-4",
+        messages=[{"role": "user", "content": prompt}],
+        max_tokens=500,
+        temperature=0.7,
+        top_p=1,
+        frequency_penalty=0,
+        presence_penalty=0
+    )
+
+    return response['choices'][0]['message']['content'].strip()
 
 
 def create_email(sender, recipient, subject, body, msg_id=None, in_reply_to=None):
@@ -66,6 +78,14 @@ def save_mbox(thread, filename="emails.mbox"):
 
 # Example usage
 if __name__ == "__main__":
-    topic = "investment strategies"
-    thread = generate_thread(topic, num_emails=5)
-    save_mbox(thread, "financial_emails.mbox")
+    np.random.seed(0)
+
+    # Settings
+    max_thread_size = 10
+    prob_per_email = 0.5
+    email_threads_topics = ["investment strategies for NVIDIA"]
+
+    for topic in email_threads_topics:
+        num_emails = int(np.random.binomial(n=max_thread_size, p=prob_per_email, size=1)[0])
+        thread = generate_thread(topic, num_emails=num_emails)
+        save_mbox(thread, f"{topic.replace(' ', '_').lower()}.mbox")

@@ -186,19 +186,19 @@ def select_workspace(state):
     if state.dialog_success:
         mail_path = askdirectory(title='Select Folder')
         if type(mail_path) is str:
-            # TODO: Show loader
+            notify(state, "info", "Creating the database...")
             state.mail_data_path = mail_path
             # We can let the user ask a question now that a path is selected
             state.input_frozen = False
 
             # Create database
-            state.table_name = create_db(data_path=state.mail_data_path, table_name="ShazList0")
+            state.table_name = create_db(data_path=state.mail_data_path, table_name="ShazList5")
 
             # TODO: Add blocking call
 
             # We can now get a list of people's names that we have e-mails from
             state.people_names = list(get_senders(table_name=state.table_name))
-            # TODO: Notify success
+            notify(state, "success", "Created the database!")
 
 
 # For debugging

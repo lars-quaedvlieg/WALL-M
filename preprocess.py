@@ -29,27 +29,13 @@ def get_embeddings(text: str, model: str = "text-embedding-3-small") -> list[flo
 
 
 def main():
-    # Config.
-    table_name = "dummy1"
-    connection_string = "iris://demo:demo@localhost:1972/USER"
-    data_dir = Path("data/emails")
-    embeddings_dim = 1536  # openai text-embedding-3-small
-
     # Get raw dataframe.
     data = []
-    for i, path in enumerate(data_dir.iterdir()):
-        with open(path) as f:
-            text = "\n".join(f)
-        data.append({"email_id": i, "text": text})
-    df = pd.DataFrame(data)
-
+    data_dir = Path("data/emails")
+    email_parser = JsonEmailParser(data_dir)
+    df = email_parser.parse()
     # Get chunks.
     df = chunking(df)
-
-    # Add embeddings.
-    df = df.iloc[:5, :]  # avoid too many api calls until we go into production
-    df["embeddings"] = list(map(get_embeddings, tqdm(df["chunk_text"], desc="Getting embeddings")))
-    print(df.keys())
     print(df)
 
     # Make database.

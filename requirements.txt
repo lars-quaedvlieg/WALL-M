@@ -2,3 +2,7 @@ llama-iris
 python-dotenv
 taipy
 beautifulsoup4
+langchain-ai21
+sqlalchemy-iris
+openai
+tqdm

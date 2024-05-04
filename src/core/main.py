@@ -18,6 +18,8 @@ input_frozen = True
 past_data = []
 selected_conv = None
 mail_data_path = None
+show_dialog = False
+dialog_success = False
 
 def on_init(state: State) -> None:
     """
@@ -26,6 +28,7 @@ def on_init(state: State) -> None:
     Args:
         - state: The current state of the app.
     """
+    state.show_dialog = False
     state.user_query = ""
     state.data["user_query"] = ""
     state.data["generated_response"] = ""
@@ -33,6 +36,7 @@ def on_init(state: State) -> None:
     state.input_frozen = True
     state.selected_conv = None
     state.mail_data_path = None
+    state.dialog_success = False
 
 def request(state: State) -> str:
     """
@@ -124,11 +128,18 @@ def select_conv(state: State, var_name: str, value) -> None:
     state.data = state.past_data[value[0][0]][1]
 
 def select_workspace(state):
-    mail_path = askdirectory(title='Select Folder')
-    if type(mail_path) is str:
-        state.mail_data_path = mail_path
-        # We can let the user ask a question now that a path is selected
-        state.input_frozen = False
+    state.show_dialog = True
+
+    # Blocking
+    while state.show_dialog:
+        pass
+
+    if state.dialog_success:
+        mail_path = askdirectory(title='Select Folder')
+        if type(mail_path) is str:
+            state.mail_data_path = mail_path
+            # We can let the user ask a question now that a path is selected
+            state.input_frozen = False
 
 # For debugging
 # def on_exception(state, fct_name, e):
@@ -137,7 +148,18 @@ def select_workspace(state):
 
 past_prompts = []
 
+def toggle_dialog(state, identifier, payload):
+    state.show_dialog = False
+    if payload["args"][0] in {-1, 1}:
+        state.dialog_success = False
+    else:
+        state.dialog_success = True
+
 page = """
+<|{show_dialog}|title=WARNING|labels=Validate;Cancel|dialog|on_action=toggle_dialog
+Are you sure you want to load the data? Even if you have data loaded, this will rebuild the database, and might take a second!
+|>
+
 <|layout|columns=300px 1|
 
 <|part|class_name=sidebar|
@@ -153,6 +175,7 @@ page = """
 |>
 
 <|part|class_name=p2 align-item-top table scrollable|
+<|navbar|lov={[("home", "Home"), ("customize", "Customize")]}|>
 <|part|class_name=card mt1|
 ### Question ### {: .h5 .mt2 .mb-half}
 <|part|render={mail_data_path is None}|

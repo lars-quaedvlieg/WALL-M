@@ -33,18 +33,14 @@ def generate_email_body(topic, author, previous_emails=None):
 
     [Introduction: Greet the client , mention your firm {author} and provide a brief overview of the email content regarding {topic}]
 
-    Market Overview:
-    [Provide a brief overview of the current market conditions related to the input topic. Discuss key trends, recent developments, and any pertinent news that could impact investment decisions.]
-
     Investment Opportunities/Events:
     [Highlight specific investment opportunities within the input topic. Discuss why these opportunities are attractive and how investors can benefit from them. Provide relevant data and analysis to support your claims.]
 
     Trading Ideas:
-    [List out the trading ideas with a brief explanation of the rationale behind each trade..]
+    [List out 5 different trading ideas with time duration, expected return and brief explanation of the rationale behind each trade.]
     
     Disclaimer:
-    [Discuss any potential risks associated with the trading ideas mentioned above. Highlight factors that investors should be aware of and consider before implementing any trades.]
-
+    Any views, strategies or products discussed in this material may not be appropriate for all individuals and are subject to risks. Investors may get back less than they invested, and past performance is not a reliable indicator of future results. Asset allocation/diversification does not guarantee a profit or protect against loss. Nothing in this material should be relied upon in isolation for the purpose of making an investment decision.
     Best regards,
 
     {author} Investment Research
@@ -63,7 +59,7 @@ def generate_email_body(topic, author, previous_emails=None):
                 "content": f"{prompt}",
             }
         ],
-        max_tokens=500,
+        max_tokens=700,
         model="gpt-3.5-turbo",
     )
 

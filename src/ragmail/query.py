@@ -8,12 +8,22 @@ from openai import OpenAI
 from src.ragmail.rag import get_embeddings, cosine_similarity
 
 CONNECTION_STRING = "iris://demo:demo@localhost:1972/USER"
+
+SYSTEM_PROMPT = (
+    "You are a highly focused assistant tasked with providing accurate, "
+    "reliable, and to-the-point answers to questions based solely on the provided context below."
+    "Verify your answers against the context to ensure accuracy. "
+    "Accurate answers will be rewarded to promote meticulous response formulation."
+    "Hallucination of information that isn't in the data will be punished appropriately."
+    "Most importantly, tag each of your claims with the correct source chronologically. For example, if you use facts from the first source, you end with a [1], etc."
+)
+
 TEMPLATE = (
-    "We have provided context information below. \n"
+    "Below, you are given the information that you are permitted to base your facts on. \n"
     "---------------------\n"
     "{context}"
     "\n---------------------\n"
-    "Given this information, please answer the question: {query}\n"
+    "Make sure to adhere to the guidelines above. Given this information, please answer the following question: {query}\n"
 )
 
 
@@ -28,7 +38,7 @@ def get_response(query: str, contexts: list[str],
     response = client.chat.completions.create(
         model=model,
         messages=[
-            # {"role": "system", "content": "You are a helpful assistant. You may only respond questions using information from the context provided."},
+            {"role": "system", "content": SYSTEM_PROMPT},
             {"role": "user", "content": prompt}
         ]
     )

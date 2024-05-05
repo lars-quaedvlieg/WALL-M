@@ -30,9 +30,10 @@ TEMPLATE = (
 
 
 def get_response(query: str, contexts: list[str],
-                 model: str = "gpt-4-turbo-preview") -> str:
+                 #model: str = "gpt-4-turbo-preview") -> str:
+                 model: str = "gpt-3.5-turbo") -> str:
 
-    if len(contexts) > 0:
+    if len(contexts) == 0:
         raise FileNotFoundError("Can't answer without context")
     context = "-----\n".join(contexts)
     prompt = TEMPLATE.format(query=query, context=context)
@@ -68,8 +69,8 @@ def query_db(table_name: str, prompt: str, filters: dict[str, Any]) -> pd.DataFr
         date1, date2 = "None", "None"
     else:
         date1, date2 = dates_filter
-    date1 = None if date1 == "None" else str(date1)
-    date2 = None if date2 == "None" else str(date2)
+    date1 = None if date1 == "None" else str(date1).replace("-", "")
+    date2 = None if date2 == "None" else str(date2).replace("-", "")
 
     if people_filter is None and date1 is None and date2 is None:
         filter_query = ""

@@ -7,6 +7,7 @@ from email.mime.multipart import MIMEMultipart
 import sys
 import os
 import getpass
+import random
 
 from openai import OpenAI
 from tqdm import tqdm
@@ -24,6 +25,25 @@ client = OpenAI(
     # This is the default and can be omitted
     api_key=api_key,
 )
+
+def generate_reply(prompt):
+
+    response = client.chat.completions.create(
+    messages=[
+        {
+            "role": "system",
+            "content": "/restart",
+        },
+        {
+            "role": "user",
+            "content": f"{prompt}",
+        }
+    ],
+    max_tokens=300,
+    model="gpt-3.5-turbo",
+    )
+
+    return response.choices[0].message.content
 
 def generate_email_body(topic, author, previous_emails=None):
     prompt = f"""Pretend that you are {author} Investment Research. Generate text body about {topic} in the financial domain. End with a Trade Ideas section summarizing the trade suggestions.
@@ -66,6 +86,13 @@ def generate_email_body(topic, author, previous_emails=None):
     return response.choices[0].message.content
 
 
+# def generate_work_emails(prompt):
+
+#     text = generate_reply(prompt)
+
+#     return text
+
+
 def create_email(sender, recipient, subject, body, msg_id=None, in_reply_to=None):
     message = MIMEMultipart()
     message['From'] = sender
@@ -97,8 +124,6 @@ def generate_thread(topic, sender, name, num_emails=3):
         time.sleep(1)  # To vary the message IDs and mimic delay
 
     return thread
-
-
 
 
 def save_mbox(thread, filename="emails.txt"):

@@ -1,135 +1,77 @@
-# InterSystems IRIS Vector Search
+# WALL-M: A Platform for Retrieval Augmented Generation (RAG) for Question-Answering of E-Mails
 
+<<<<<<< HEAD
 ![Example Image](res/example.png)
 
 With the 2024.1 release, we're adding a powerful [Vector Search capability to the InterSystems IRIS Data Platform](https://www.intersystems.com/news/iris-vector-search-support-ai-applications/), to help you innovate faster and build intelligent applications powered by Generative AI. At the center of the new capability is a new [`VECTOR` native datatype](https://docs.intersystems.com/iris20241/csp/docbook/DocBook.UI.Page.cls?KEY=RSQL_datatype#RSQL_datatype_vector) for IRIS SQL, along with [similarity functions](https://docs.intersystems.com/iris20241/csp/docbook/Doc.View.cls?KEY=GSQL_vecsearch) that leverage optimized chipset instructions (SIMD).
+=======
+This project was completed for the HackUPC 2024 Hackathon in Barcelona! We utilized the [Vector Search capability to the InterSystems IRIS Data Platform](https://www.intersystems.com/news/iris-vector-search-support-ai-applications/) to solve the problem of question-answering with semantic search whilst trying to prevent model hallucinations.
+>>>>>>> e16991293641f8147297f2889fd9074b5f6b31da
 
-This repository offers code samples to get you started with the new features, and we'll continue to add more, but encourage you to let us know about your own experiments on the [InterSystems Developer Community](https://community.intersystems.com). At the bottom of this page, you'll find links to a few demo repositories we liked a lot!
+The repository contains the complete question-answering platform, which you can set up with the steps below. However, note that you currently need an OpenAI and an AI21 Labs key to utilize the models. In the future, we hope this platform can be extended to provide local LLMs instead of commercial solutions. Furthermore, we hope to integrate a direct connection to Outlook.  
 
-
-## InterSystems IRIS Vector Search Quickstart
+## WALL-M Setup
 
 1. Clone the repo
     ```Shell
-    git clone https://github.com/intersystems-community/iris-vector-search.git
+    git clone git@github.com:lars-quaedvlieg/WALL-M.git
     ```
    
-
-### Using a Jupyter container
-
-If you prefer just running the demos from your local Python environment, skip to [Using your local Python environment](#using-your-local-python-environment).
-
-
-2. For [`langchain_demo.ipynb`](demo/langchain_demo.ipynb) and [`llama_demo.ipynb`](demo/llama_demo.ipynb), you need an [OpenAI API Key](https://platform.openai.com/api-keys). Update the corresponding entry in `docker-compose.yml`:
-    ```
-      OPENAI_API_KEY: xxxxxxxxx
-    ```
-
-3. Change your directory to hackupc-2024
+2. Change your directory to hackupc-2024
     ```Shell
     cd hackupc-2024
     ```
 
-4. Start the Docker containers (one for IRIS, one for Jupyter):
-    ```Shell
-    docker-compose up
-    ```
-5. Once loaded, navigate to http://localhost:8888/lab to access the notebook. To view the container information, run in a new terminal:
-    ```Shell
-    docker-compose ps
-    ```
-
-### Using your local Python environment 
-
-#### Note: if you used the previous method (Jupyter container), you will need to stop the previous docker container before running the following steps, as they will try to use the same port (Alternatively, use a different port)
-
-
-2. Install IRIS Community Edtion in a container:
+3. Install IRIS Community Edtion in a container, which will open a port on your device for the IRIS database system:
     ```Shell
     docker run -d --name iris-comm -p 1972:1972 -p 52773:52773 -e IRIS_PASSWORD=demo -e IRIS_USERNAME=demo intersystemsdc/iris-community:latest
     ```
     :information_source: After running the above command, you can access the System Management Portal via http://localhost:52773/csp/sys/UtilHome.csp. Please note you may need to [configure your web server separately](https://docs.intersystems.com/iris20241/csp/docbook/DocBook.UI.Page.cls?KEY=GCGI_private_web#GCGI_pws_auto) when using another product edition.
 
-3. Create a Python environment and activate it (conda, venv or however you wish) For example:
+4. Create a Python environment and activate it (conda, venv or however you wish) For example:
     
     conda:
     ```Shell
-    conda create --name iris-vector-search python=3.10
+    conda create --name wall-m python=3.10
     conda activate
     ```
     or 
 
     venv (Windows):
     ```Shell
-    python -m venv iris-vector-search
+    python -m venv wall-m
     .\venv\Scripts\Activate
     ```
     or 
 
     venv (Unix):
     ```Shell
-    python -m venv iris-vector-search
+    python -m venv wall-m
     source ./venv/bin/activate
     ```
 
-4. Install packages for all demos:
+5. Install packages for all demos:
     ```Shell
     pip install -r requirements.txt
     ```
 
-5. For [`langchain_demo.ipynb`](demo/langchain_demo.ipynb) and [`llama_demo.ipynb`](demo/llama_demo.ipynb), you need an [OpenAI API Key](https://platform.openai.com/api-keys). Create a `.env` file in this repo to store the key:
+6. Make sure to obtain an [OpenAI API Key](https://platform.openai.com/api-keys) and an AI21 Labs key. Then, create a `.env` file in this repo to store the keys as:
     ```
     OPENAI_API_KEY=xxxxxxxxx
+    AI21_API_KEY=xxxxxxxxx    
     ```
     
-6. The demos in this repository are formatted as Jupyter notebooks. To run them, just start Jupyter and navigate to the `/demo/` folder:
+7. The application in this repository is created using Taipy. To run it, just start Jupyter and navigate to the root folder and run:
 
     ```Shell
-    jupyter lab
+    python src/core/main.py
     ```
 
-## Using the Management Portal
+8. Once you have launched the platform, you need to head to `127.0.0.1:5000`. Once there, you need to **select a data directory**. This directory should contain JSON-files with e-mail descriptions, but we hope to replace this with direct authentication to Outlook in the future. The method to obtain these JSON-files can also be found in the codebase. These files are then used to create a database table with IRIS, which can then be queried using Retrieval Augmented Generations and Large Language Models.
 
-1. Navigate to http://localhost:52773/csp/sys/UtilHome.csp, login with username: demo, password: demo (or whatever you configured)
+## Using the IRIS Management Portal
+
+1. Navigate to `http://localhost:52773/csp/sys/UtilHome.csp`, login with username: `demo`, password: `demo` (or whatever you configured)
 2. On the left navigation pane, click 'System Explorer'
 3. Click 'SQL' -> 'Go'
 4. Here, you can execute SQL queries. You can also view the tables by clicking the relevant table on the left, under 'Tables', and then clicking 'Open Table' (above the SQL query box)
-
-## Basic Demos
-
-### [sql_demo.ipynb](demo/sql_demo.ipynb)
-
-IRIS SQL now supports vector search (with other columns)! In this demo, we're searching a whiskey dataset for whiskeys that are priced < $100 and have a taste description similar to "earthy and creamy taste".
-
-### [langchain_demo.ipynb](demo/langchain_demo.ipynb)
-
-IRIS now has a langchain integration as a VectorDB! In this demo, we use the langchain framework with IRIS to ingest and search through a document. 
-
-### [llama_demo.ipynb](demo/llama_demo.ipynb)
-
-IRIS now has a llama_index integration as a VectorDB! In this demo, we use the llama_index framework with IRIS to ingest and search through a document. 
-
-## Which to use?
-
-If you need to use hybrid search (similarity search with other columns), use IRIS SQL. 
-
-If you're building a genAI app that uses a variety of tools (agents, chained reasoning, api calls), go for langchain. 
-
-If you're building a RAG app, go for llama_index.
-
-The fastest and easiest way to contact any InterSystems Mentor is via Slack or Discord - feel free to ask any questions about our technology, or about your project in general!
-
-
-## More Demos / References:
-
-### [NLP Queries on Youtube Audio Transcription](https://github.com/jrpereirajr/intersystems-iris-notebooks/blob/main/vector/langchain-iris/nlp_queries_on_youtube_audio_transcription_dataset.ipynb)
-Uses langchain-iris to search Youtube Audio transcriptions
-
-### [langchain-iris demo](https://github.com/caretdev/langchain-iris/blob/main/demo.ipynb)
-Original IRIS langhain demo, that runs the containerized IRIS in the notebook
-
-### [llama-iris demo](https://github.com/caretdev/llama-iris/blob/main/demo.ipynb)
-Original IRIS llama_index demo, that runs the containerized IRIS in the notebook
-
-### [InterSystems Documentation](https://docs.intersystems.com/)
-Official page for InterSystems Documentation

@@ -40,7 +40,7 @@ def generate_reply(prompt):
             "content": f"{prompt}",
         }
     ],
-    max_tokens=150,
+    max_tokens=300,
     model="gpt-3.5-turbo",
     )
 
@@ -49,33 +49,12 @@ def generate_reply(prompt):
 
 if __name__ == "__main__":
     # List of friends/acquaintances
-    participants = ["Alice", "Bob", "Charlie"]
-
-
-    # Initial prompt to start the conversation
-    initial_prompt = "You are having a casual conversation with your friend, Friend 1. Start the conversation."
-
-    # Generate the conversation
-    conversation = []
-
-    # First message from Friend 1
-    friend1_message = initial_prompt
-    friend2_message = generate_reply(friend1_message)
-    conversation.append({"Friend 1": friend1_message, "Friend 2": friend2_message})
-
-    # Generate replies in the conversation
-    for _ in range(5):  # Number of messages in the conversation
-        friend1_message = generate_reply(friend2_message)
-        friend2_message = generate_reply(friend1_message)
-        conversation.append({"Friend 1": friend1_message, "Friend 2": friend2_message})
-
-    # Convert conversation to JSON format
-    conversation_json = json.dumps(conversation, indent=4)
     
-    with open("threads.json", "w") as outfile:
-        outfile.write(conversation_json)
+    tasks = ["frontend", "business development", "scheduling meetings"]
 
+    prompt = "Imagine that you work in a startup and there are many different projects at hand. Task related to {task}. Generate a sequence of mails enacting such a situation between the employees of the startup. Keep the mails brief and unstructured"
 
-    # Print the JSON conversation
-    print(conversation_json)
+    text = generate_reply(prompt.format(task=random.choice(tasks)))
+
+    print(text)
 

@@ -66,11 +66,13 @@ def get_db_summary(table_name: str) -> dict:
     engine = sqlalchemy.create_engine(CONNECTION_STRING)
     with engine.connect() as conn:
         with conn.begin():
-            sql = sqlalchemy.text(f"SELECT DISTINCT email_id, subject, sender, email_date FROM {table_name};")
+            sql = sqlalchemy.text(f"SELECT DISTINCT email_id, email_date, sender, subject  FROM {table_name};")
             results = conn.execute(sql)
             emails = results.fetchall()
             columns = results.keys()
     summary = pd.DataFrame(emails, columns=columns).drop('email_id', axis=1)
+    summary = summary.rename(columns={"email_date": "Date", "sender": "Sender", "subject": "Subject"})
+    summary['Date'] = pd.to_datetime(summary['Date']).dt.strftime('%d/%m/%Y %H:%M')
     return summary.to_dict('list')
 
 
@@ -163,9 +165,9 @@ def query(table_name: str, prompt: str, filters: dict[str, Any]) -> tuple[str, l
         formatted_chunk = (f"Sender: {row['sender']}\n" +
                            f"Recipient: {row['recipient']}\n" +
                            f"Date: {row['email_date']}\n" +
-                           f"Subject: {row['subject']}\n" +
-                           f"Score: {row['score']}\n\n" +
-                           f"Referenced text:\n\"{row['chunk_text']}\"")
+                           f"Subject: {row['subject']}\n\n" +
+                           f"Referenced text:\n\"{row['chunk_text']}\"\n\n" +
+                           f"(Similarity score: {row['score']:.2f})\n")
 
         referenced_context.append((formatted_chunk, row["score"]))
 

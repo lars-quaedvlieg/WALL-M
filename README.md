@@ -1,5 +1,7 @@
 # WALL-M: A Platform for Retrieval Augmented Generation (RAG) for Question-Answering of E-Mails
 
+![Example Image](res/example.png)
+
 This project was completed for the HackUPC 2024 Hackathon in Barcelona! We utilized the [Vector Search capability to the InterSystems IRIS Data Platform](https://www.intersystems.com/news/iris-vector-search-support-ai-applications/) to solve the problem of question-answering with semantic search whilst trying to prevent model hallucinations.
 
 The repository contains the complete question-answering platform, which you can set up with the steps below. However, note that you currently need an OpenAI and an AI21 Labs key to utilize the models. In the future, we hope this platform can be extended to provide local LLMs instead of commercial solutions. Furthermore, we hope to integrate a direct connection to Outlook.  

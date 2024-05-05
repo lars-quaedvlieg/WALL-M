@@ -65,7 +65,7 @@ def get_db_summary(table_name: str) -> dict:
             results = conn.execute(sql)
             emails = results.fetchall()
             columns = results.keys()
-    summary = pd.DataFrame(context, columns=columns).drop('email_id', axis=1)
+    summary = pd.DataFrame(emails, columns=columns).drop('email_id', axis=1)
     return summary.to_dict('list')
 
 

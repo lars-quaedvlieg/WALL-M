@@ -6,3 +6,7 @@ langchain-ai21
 sqlalchemy-iris
 openai
 tqdm
+langchain
+langchain-openai
+langchain-anthropic
+langchain-community

@@ -9,7 +9,11 @@ from taipy.gui import Gui, State, notify, navigate
 from src.core.page_markdowns.customize import customize_page
 from src.core.page_markdowns.home import home_page
 from src.ragmail.build_database import create_db, table_exists
-from src.ragmail.query import get_senders, query, get_response, get_db_summary
+<<<<<<< HEAD
+from src.ragmail.query import get_senders, query, get_response
+=======
+from src.ragmail.query import get_senders, query, get_db_summary
+>>>>>>> main
 
 TABLE_NAME = "ShazList10"
 
@@ -40,15 +44,11 @@ filter_names = None
 people_names = None
 table_name = None
 dataset_samples = None
-# TODO: Add table name
 
 conversation = []
 conversation_table = {"Conversation": []}
-all_conversations = {}
-all_conversations_tables = {}
 selected_row = [1]
 current_user_message = ""
-current_conv = None
 
 def on_init(state: State) -> None:
     """
@@ -167,21 +167,6 @@ def select_conv(state: State, var_name: str, value) -> None:
     state.input_frozen = True
     state.user_query = state.past_data[value[0][0]][1]["user_query"]
     state.data = state.past_data[value[0][0]][1]
-
-    # If current_conv is set, store the current conversation (otherwise this is the first time this is called).
-    if state.current_conv is not None:
-        state.all_conversations_tables[str(state.current_conv)] = state.conversation_table._dict.copy()
-        state.all_conversations[str(state.current_conv)] = state.conversation.copy()
-    state.current_conv = value[0][0]
-
-    # Get the new conv table.
-    if str(value[0][0]) in state.all_conversations_tables:  # retrieve old conv.
-        state.conversation_table = state.all_conversations_tables[str(value[0][0])]._dict.copy()
-        state.conversation = state.all_conversations[str(state.current_conv)].copy()
-    else:  # start new conv.
-        state.conversation_table = {"Conversation": []}
-        state.conversation = []
-
     # Reset the information for the individual e-mails
     state.selected_email_id = None
     state.selected_email = None
@@ -237,6 +222,7 @@ def ask_the_gpt(state: State) -> str:
         return "\n\n".join(old_context.split("\n\n")[1:])
 
     state.conversation.append(state.current_user_message)
+    print("Contexts", state.data["generated_emails_scores"])
     contexts = [get_true_context(email)
                 for _, (email, _) in state.data["generated_emails_scores"]]
     answer = get_response(state.data["user_query"], contexts,

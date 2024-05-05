@@ -39,6 +39,7 @@ logo_image = None
 filter_names = None
 people_names = None
 table_name = None
+dataset_samples = None
 # TODO: Add table name
 
 conversation = []

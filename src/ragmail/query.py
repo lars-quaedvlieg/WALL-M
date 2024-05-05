@@ -27,24 +27,29 @@ TEMPLATE = (
     "Make sure to adhere to the guidelines above. Given this information, please answer the following question: {query}\n"
 )
 
-
-
 def get_response(query: str, contexts: list[str],
-                 #model: str = "gpt-4-turbo-preview") -> str:
+                 new_messages: list[str] = [],
                  model: str = "gpt-3.5-turbo") -> str:
+                 #model: str = "gpt-4-turbo-preview") -> str:
 
     if len(contexts) == 0:
         raise FileNotFoundError("Can't answer without context")
+
     context = "-----\n".join(contexts)
     prompt = TEMPLATE.format(query=query, context=context)
+
+    # Get message list.
+    messages = [{"role": "system", "content": SYSTEM_PROMPT},
+                {"role": "user", "content": prompt}]
+    for i, msg in enumerate(new_messages):
+        role = "assistant" if i % 2 == 0 else "user"
+        messages.append({"role": role, "content": msg})
+
+    print("get_response query:", messages)
+
+    # API call.
     client = OpenAI()
-    response = client.chat.completions.create(
-        model=model,
-        messages=[
-            {"role": "system", "content": SYSTEM_PROMPT},
-            {"role": "user", "content": prompt}
-        ]
-    )
+    response = client.chat.completions.create(model=model, messages=messages)
     return response.choices[0].message.content
 
 
@@ -58,19 +63,14 @@ def get_senders(table_name: str) -> set[str]:
 
 
 def query_db(table_name: str, prompt: str, filters: dict[str, Any]) -> pd.DataFrame:
-    print("infooo", table_name, prompt, filters)
-
     # Handle filters.
     people_filter = filters["people_filter"]
     dates_filter = filters["dates_filter"]
     if people_filter == []:
         people_filter = None
-    if dates_filter == "":
-        date1, date2 = "None", "None"
-    else:
-        date1, date2 = dates_filter
-    date1 = None if date1 == "None" else str(date1).replace("-", "")
-    date2 = None if date2 == "None" else str(date2).replace("-", "")
+    date1, date2 = dates_filter
+    date1 = None if date1 == "" else str(date1).replace("-", "")
+    date2 = None if date2 == "" else str(date2).replace("-", "")
 
     if people_filter is None and date1 is None and date2 is None:
         filter_query = ""
@@ -105,8 +105,6 @@ def query_db(table_name: str, prompt: str, filters: dict[str, Any]) -> pd.DataFr
             columns = results.keys()
             context = results.fetchall()
     res = pd.DataFrame(context, columns=columns)
-    print(sql)
-    print("Resultingggg", res)
     return res
 
 

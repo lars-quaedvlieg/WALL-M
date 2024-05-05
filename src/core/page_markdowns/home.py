@@ -54,7 +54,7 @@ Are you sure you want to load the data? Even if you have data loaded, this will 
 <|part|class_name=card mt1|
 ### Further questions? Start a conversation! ### {: .h5 .mt2 .mb-half}
 <|part|class_name=p2 align-item-bottom table|
-<|{conversation}|table|style=style_conv|show_all|selected={selected_row}|rebuild|>
+<|{conversation_table}|table|style=style_conv|show_all|selected={selected_row}|rebuild|>
 <|part|class_name=card mt1|
 <|{current_user_message}|input|label=Write your message here...|on_action=send_message|class_name=fullwidth|change_delay=-1|>
 |>

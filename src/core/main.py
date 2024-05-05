@@ -42,7 +42,9 @@ table_name = None
 # TODO: Add table name
 
 conversation = []
+conversation_table = {"Conversation": []}
 selected_row = [1]
+current_user_message = ""
 
 def on_init(state: State) -> None:
     """
@@ -82,6 +84,7 @@ def request(state: State) -> tuple[str, list[tuple[str, float]]]:
                 "dates_filter": [state.start_date, state.end_date],
             }
         )
+        state.conversation.append(response)
         return response, emails_scores
     except FileNotFoundError:
         notify(state, "error", "No match was found with the provided question settings.")
@@ -188,18 +191,39 @@ def select_email(state: State, var_name: str, value) -> None:
     """
     state.selected_email = state.data["generated_emails_scores"][value[0][0]][1][0]
 
+    
+def style_conv(state: State, idx: int, row: int) -> str:
+    """
+    Apply a style to the conversation table depending on the message's author.
+
+    Args:
+        - state: The current state of the app.
+        - idx: The index of the message in the table.
+        - row: The row of the message in the table.
+
+    Returns:
+        The style to apply to the message.
+    """
+    if idx is None:
+        return None
+    elif idx % 2 == 0:
+        return "user_message"
+    else:
+        return "gpt_message"
+
 
 def ask_the_gpt(state: State) -> str:
     def get_true_context(old_context: str) -> str:
         return "\n\n".join(old_context.split("\n\n")[1:])
 
     state.conversation.append(state.current_user_message)
+    print("Contexts", state.data["generated_emails_scores"])
     contexts = [get_true_context(email)
                 for _, (email, _) in state.data["generated_emails_scores"]]
     answer = get_response(state.data["user_query"], contexts,
-                          new_message=state.conversation)
+                          new_messages=state.conversation)
     state.conversation.append(answer)
-    state.selected_row = [len(state.conversation["Conversation"]) + 1]
+    state.selected_row = [len(state.conversation_table["Conversation"]) + 1]
     return answer
 
 
@@ -211,7 +235,8 @@ def send_message(state: State) -> None:
         - state: The current state of the app.
     """
     notify(state, "info", "Sending message...")
-    ask_the_gpt(state)
+    answer = ask_the_gpt(state)
+    state.conversation_table["Conversation"] += [state.current_user_message, answer]
     state.current_user_message = ""
     notify(state, "success", "Response received!")
 

@@ -62,6 +62,18 @@ def get_senders(table_name: str) -> set[str]:
     return {result.lower() for result, in results}
 
 
+def get_db_summary(table_name: str) -> dict:
+    engine = sqlalchemy.create_engine(CONNECTION_STRING)
+    with engine.connect() as conn:
+        with conn.begin():
+            sql = sqlalchemy.text(f"SELECT DISTINCT email_id, subject, sender, email_date FROM {table_name};")
+            results = conn.execute(sql)
+            emails = results.fetchall()
+            columns = results.keys()
+    summary = pd.DataFrame(emails, columns=columns).drop('email_id', axis=1)
+    return summary.to_dict('list')
+
+
 def query_db(table_name: str, prompt: str, filters: dict[str, Any]) -> pd.DataFrame:
     # Handle filters.
     people_filter = filters["people_filter"]

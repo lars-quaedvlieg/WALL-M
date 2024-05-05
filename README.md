@@ -1,6 +1,6 @@
 # WALL-M: A Platform for Retrieval Augmented Generation (RAG) for Question-Answering of E-Mails
 
-![Example Image](res/example.png)
+![Example Image](res/example.jpg)
 
 This project was completed for the HackUPC 2024 Hackathon in Barcelona! We utilized the [Vector Search capability to the InterSystems IRIS Data Platform](https://www.intersystems.com/news/iris-vector-search-support-ai-applications/) to solve the problem of question-answering with semantic search whilst trying to prevent model hallucinations.
 

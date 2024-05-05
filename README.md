@@ -1,12 +1,8 @@
 # WALL-M: A Platform for Retrieval Augmented Generation (RAG) for Question-Answering of E-Mails
 
-<<<<<<< HEAD
 ![Example Image](res/example.png)
 
-With the 2024.1 release, we're adding a powerful [Vector Search capability to the InterSystems IRIS Data Platform](https://www.intersystems.com/news/iris-vector-search-support-ai-applications/), to help you innovate faster and build intelligent applications powered by Generative AI. At the center of the new capability is a new [`VECTOR` native datatype](https://docs.intersystems.com/iris20241/csp/docbook/DocBook.UI.Page.cls?KEY=RSQL_datatype#RSQL_datatype_vector) for IRIS SQL, along with [similarity functions](https://docs.intersystems.com/iris20241/csp/docbook/Doc.View.cls?KEY=GSQL_vecsearch) that leverage optimized chipset instructions (SIMD).
-=======
 This project was completed for the HackUPC 2024 Hackathon in Barcelona! We utilized the [Vector Search capability to the InterSystems IRIS Data Platform](https://www.intersystems.com/news/iris-vector-search-support-ai-applications/) to solve the problem of question-answering with semantic search whilst trying to prevent model hallucinations.
->>>>>>> e16991293641f8147297f2889fd9074b5f6b31da
 
 The repository contains the complete question-answering platform, which you can set up with the steps below. However, note that you currently need an OpenAI and an AI21 Labs key to utilize the models. In the future, we hope this platform can be extended to provide local LLMs instead of commercial solutions. Furthermore, we hope to integrate a direct connection to Outlook.  
 

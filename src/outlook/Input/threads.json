@@ -1,0 +1,47 @@
+[
+    {
+        "sender": "Arvind",
+        "message": "Hey Somesh! I'm super excited about the upcoming hackathon, HackUPC! Are you still up for going to Barcelona with me?"
+    },
+    {
+        "sender": "Somesh",
+        "message": "Hey Arvind! Absolutely, I've been looking forward to it! When are we planning to head to Barcelona?"
+    }
+    ,
+    {
+        "sender": "Arvind",
+        "message": "Great! I was thinking we could fly in a day before the hackathon starts. How does that sound to you?"
+    },
+    {
+        "sender": "Somesh",
+        "message": "That sounds perfect to me. We can use that extra day to explore the city and get a feel for the surroundings. Do you have any preferences for accommodation?"
+    },
+    {
+        "sender": "Arvind",
+        "message": "I was thinking of booking an Airbnb near the venue. It would be convenient for us and save us some travel time. What do you think?"
+    },
+    {
+        "sender": "Somesh",
+        "message": "That's a good idea. It'll be nice to have our own space during the hackathon. Let's go ahead and book it. Have you looked into flights yet?"
+    },
+    {
+        "sender": "Arvind",
+        "message": "Not yet, but I'll check for flights today and let you know. We should book them as soon as possible to get good deals. Also, do you have any dietary preferences I should keep in mind?"
+    },
+    {
+        "sender": "Somesh",
+        "message": "I'm pretty flexible with food, but thanks for asking. Let's make sure to try some authentic Spanish cuisine while we're there! I'm getting excited just thinking about it."
+    },
+    {
+        "sender": "Arvind",
+        "message": "Me too! It's going to be an amazing experience. I'll send you the flight options as soon as I find them. Anything else we need to plan before the trip?"
+    },
+    {
+        "sender": "Somesh",
+        "message": "I think we've covered everything for now. If anything else comes up, we can discuss it later. Thanks for taking the lead on planning, Arvind. You're the best!"
+    },
+    {
+        "sender": "Arvind",
+        "message": "No problem, Somesh! We make a great team. Get ready for an awesome hackathon and an unforgettable trip to Barcelona!"
+    }
+]

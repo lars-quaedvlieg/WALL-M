@@ -52,7 +52,7 @@ def create_db(data_path, table_name='test'):
             sender VARCHAR(255),
             recipient VARCHAR(255),
             email_date DATETIME,
-            text VARCHAR(3000),
+            text VARCHAR(5000),
             chunk_text VARCHAR(3000),
             embeddings VECTOR(DOUBLE, {embeddings_dim})
             )

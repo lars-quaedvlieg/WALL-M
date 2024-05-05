@@ -11,17 +11,19 @@ from src.core.page_markdowns.home import home_page
 from src.ragmail.build_database import create_db, table_exists
 from src.ragmail.query import get_senders, query
 
-TABLE_NAME = "ShazList6"
+TABLE_NAME = "ShazList10"
 
 client = None
 
 # App state
 user_query = ""
-filter_dates = ""
+start_date = ""
+end_date = ""
 data = {
     "user_query": "",
     "filter_names": [],
-    "datetime_ranges": [],
+    "start_date": "",
+    "end_date": "",
     "generated_response": "",
     "generated_emails_scores": "",
 }
@@ -37,7 +39,7 @@ logo_image = None
 filter_names = None
 people_names = None
 table_name = None
-# TODO: Add table name
+dataset_samples = None
 
 def on_init(state: State) -> None:
     """
@@ -49,11 +51,13 @@ def on_init(state: State) -> None:
     state.logo_image = os.path.join(os.getcwd(), "res", "logo.png")
     state.show_dialog = False
     state.user_query = ""
-    state.filter_dates = ""
+    state.start_date = ""
+    state.end_date = ""
     state.data["user_query"] = ""
     state.data["generated_response"] = ""
     state.data["generated_emails_scores"] = ""
-    state.data["datetime_ranges"] = []
+    state.data["start_date"] = ""
+    state.data["end_date"] = ""
     state.data["filter_names"] = []
     state.past_data = []
     state.input_frozen = True
@@ -62,20 +66,24 @@ def on_init(state: State) -> None:
     state.dialog_success = False
     state.selected_email = None
     state.selected_email_id = None
-    state.people_names = None
+    state.people_names = []
     state.table_name = None
+    state.dataset_samples = {}
 
 def request(state: State) -> tuple[str, list[tuple[str, float]]]:
-    response, emails_scores = query(
-        table_name=state.table_name,
-        prompt=state.user_query,
-        filters={
-            "people_filter": state.filter_names,
-            "dates_filter": state.filter_dates,
-        }
-    )
-    return response, emails_scores
-
+    try:
+        response, emails_scores = query(
+            table_name=state.table_name,
+            prompt=state.user_query,
+            filters={
+                "people_filter": state.filter_names,
+                "dates_filter": [state.start_date, state.end_date],
+            }
+        )
+        return response, emails_scores
+    except FileNotFoundError:
+        notify(state, "error", "No match was found with the provided question settings.")
+        raise Exception()
 
 def send_question(state: State) -> None:
     """
@@ -88,7 +96,8 @@ def send_question(state: State) -> None:
     response, emails_scores = request(state) #.replace("\n", "")
     data = state.data._dict.copy()
     data["user_query"] = state.user_query
-    data["datetime_ranges"] = state.filter_dates
+    data["start_date"] = state.end_date
+    data["end_date"] = state.start_date
     data["filter_names"] = state.filter_names
     data["generated_response"] = response
     data["generated_emails_scores"] = [(i, email_score) for i, email_score in enumerate(emails_scores)]
@@ -201,6 +210,10 @@ def select_workspace(state):
 
             # We can now get a list of people's names that we have e-mails from
             state.people_names = list(get_senders(table_name=state.table_name))
+
+            # Create the sample dictionary for the example page
+            state.dataset_samples = {"subject": ["hi"], "author": ["Hi"], "time": ["Now"]}
+
             notify(state, "success", "Created the database!")
 
 

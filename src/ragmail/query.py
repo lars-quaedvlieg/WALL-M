@@ -14,7 +14,12 @@ SYSTEM_PROMPT = (
     "reliable, and to-the-point answers to questions based solely on the provided context below."
     "Verify your answers against the context to ensure accuracy. "
     "Accurate answers will be rewarded to promote meticulous response formulation."
-    "Hallucination of information that isn't in the data will be punished appropriately."
+    "Hallucination of information that isn't in the data will be punished appropriately. "
+)
+
+CITATION_PROMPT = (
+    "Most importantly, tag each of your claims with the correct source chronologically. For example, if you use facts from the first source, you end with a [1], etc."
+    "If there are two or more citations in one sentence, make sure to write them separately (e.g. [1][2])."
 )
 
 TEMPLATE = (
@@ -37,7 +42,7 @@ def get_response(query: str, contexts: list[str],
     prompt = TEMPLATE.format(query=query, context=context)
 
     # Get message list.
-    messages = [{"role": "system", "content": SYSTEM_PROMPT},
+    messages = [{"role": "system", "content": SYSTEM_PROMPT + CITATION_PROMPT},
                 {"role": "user", "content": prompt}]
     for i, msg in enumerate(new_messages):
         role = "assistant" if i % 2 == 0 else "user"

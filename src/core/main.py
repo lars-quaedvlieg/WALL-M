@@ -17,11 +17,13 @@ client = None
 
 # App state
 user_query = ""
-filter_dates = ""
+start_date = ""
+end_date = ""
 data = {
     "user_query": "",
     "filter_names": [],
-    "datetime_ranges": [],
+    "start_date": "",
+    "end_date": "",
     "generated_response": "",
     "generated_emails_scores": "",
 }
@@ -52,11 +54,13 @@ def on_init(state: State) -> None:
     state.logo_image = os.path.join(os.getcwd(), "res", "logo.png")
     state.show_dialog = False
     state.user_query = ""
-    state.filter_dates = ""
+    state.start_date = ""
+    state.end_date = ""
     state.data["user_query"] = ""
     state.data["generated_response"] = ""
     state.data["generated_emails_scores"] = ""
-    state.data["datetime_ranges"] = []
+    state.data["start_date"] = ""
+    state.data["end_date"] = ""
     state.data["filter_names"] = []
     state.past_data = []
     state.input_frozen = True
@@ -75,7 +79,7 @@ def request(state: State) -> tuple[str, list[tuple[str, float]]]:
             prompt=state.user_query,
             filters={
                 "people_filter": state.filter_names,
-                "dates_filter": state.filter_dates,
+                "dates_filter": [state.start_date, state.end_date],
             }
         )
         return response, emails_scores
@@ -94,7 +98,8 @@ def send_question(state: State) -> None:
     response, emails_scores = request(state) #.replace("\n", "")
     data = state.data._dict.copy()
     data["user_query"] = state.user_query
-    data["datetime_ranges"] = state.filter_dates
+    data["start_date"] = state.end_date
+    data["end_date"] = state.start_date
     data["filter_names"] = state.filter_names
     data["generated_response"] = response
     data["generated_emails_scores"] = [(i, email_score) for i, email_score in enumerate(emails_scores)]

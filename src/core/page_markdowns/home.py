@@ -26,7 +26,8 @@ Are you sure you want to load the data? Even if you have data loaded, this will 
 |>
 <|{user_query}|input|active={not input_frozen}|label=Write your question here... (Press ENTER to submit)|on_action=send_question|class_name=fullwidth|change_delay=-1|>
 <|part|render={mail_data_path is not None}|
-<|{filter_dates}|date_range|>
+<|{start_date}|label=Start Date|date|>
+<|{end_date}|label=End Date|date|>
 <|{filter_names}|selector|multiple|label=Get e-mails from|lov={people_names}|dropdown|>
 |>
 <|part|render={input_frozen and mail_data_path is not None}|

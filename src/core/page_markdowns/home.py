@@ -37,8 +37,11 @@ Are you sure you want to load the data? Even if you have data loaded, this will 
 
 <|part|render={data["generated_response"] != ""}|
 <|part|class_name=card mt1|
-### Response ### {: .h5 .mt2 .mb-half}
+### Response
 <|{data["generated_response"]}|>
+
+### Cited work ### {: .h5 .mt2 .mb-half}
+<|{cited_work}|table|>
 |>
 
 <|part|class_name=card mt1|

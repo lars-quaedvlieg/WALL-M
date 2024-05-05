@@ -3,6 +3,7 @@ import sys
 from tkinter.filedialog import askdirectory
 
 import openai
+import pandas as pd
 from dotenv import load_dotenv
 from taipy.gui import Gui, State, notify, navigate
 
@@ -51,6 +52,9 @@ selected_row = [1]
 current_user_message = ""
 current_conv = None
 
+citations = None
+cited_work = None
+
 def on_init(state: State) -> None:
     """
     Initialize the app.
@@ -82,7 +86,7 @@ def on_init(state: State) -> None:
 
 def request(state: State) -> tuple[str, list[tuple[str, float]]]:
     try:
-        response, emails_scores = query(
+        response, citations, emails_scores = query(
             table_name=state.table_name,
             prompt=state.user_query,
             filters={
@@ -90,6 +94,7 @@ def request(state: State) -> tuple[str, list[tuple[str, float]]]:
                 "dates_filter": [state.start_date, state.end_date],
             }
         )
+        state.citations = citations
         state.conversation.append(response)
         return response, emails_scores
     except FileNotFoundError:
@@ -168,6 +173,10 @@ def select_conv(state: State, var_name: str, value) -> None:
     state.input_frozen = True
     state.user_query = state.past_data[value[0][0]][1]["user_query"]
     state.data = state.past_data[value[0][0]][1]
+
+    print(state.citations)
+    state.cited_work = pd.DataFrame(state.citations._dict)
+
 
     # If current_conv is set, store the current conversation (otherwise this is the first time this is called).
     if state.current_conv is not None:

@@ -65,11 +65,8 @@ def get_db_summary(table_name: str) -> dict:
             results = conn.execute(sql)
             emails = results.fetchall()
             columns = results.keys()
-    summary = {c:[] for c in columns[1:]}
-    for email in emails:
-        for i, col in enumerate(summary):
-            summary[col].append(email[i+1])
-    return summary
+    summary = pd.DataFrame(context, columns=columns).drop('email_id', axis=1)
+    return summary.to_dict('list')
 
 
 def query_db(table_name: str, prompt: str, filters: dict[str, Any]) -> pd.DataFrame:

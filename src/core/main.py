@@ -9,7 +9,7 @@ from taipy.gui import Gui, State, notify, navigate
 from src.core.page_markdowns.customize import customize_page
 from src.core.page_markdowns.home import home_page
 from src.ragmail.build_database import create_db, table_exists
-from src.ragmail.query import get_senders, query
+from src.ragmail.query import get_senders, query, get_db_summary
 
 TABLE_NAME = "ShazList10"
 
@@ -212,7 +212,7 @@ def select_workspace(state):
             state.people_names = list(get_senders(table_name=state.table_name))
 
             # Create the sample dictionary for the example page
-            state.dataset_samples = {"subject": ["hi"], "author": ["Hi"], "time": ["Now"]}
+            state.dataset_samples = get_db_summary(state.table_name)
 
             notify(state, "success", "Created the database!")
 
@@ -239,7 +239,7 @@ def on_menu(state, action, info):
 
 pages = {
     "home": home_page,
-    "customize": customize_page,
+    "dataviewer": customize_page,
 }
 
 if __name__ == "__main__":

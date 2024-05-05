@@ -52,6 +52,21 @@ def get_senders(table_name: str) -> set[str]:
     return {result.lower() for result, in results}
 
 
+def get_db_summary(table_name: str) -> dict:
+    engine = sqlalchemy.create_engine(CONNECTION_STRING)
+    with engine.connect() as conn:
+        with conn.begin():
+            sql = sqlalchemy.text(f"SELECT DISTINCT email_id, subject, sender, email_date FROM {table_name};")
+            results = conn.execute(sql)
+            emails = results.fetchall()
+            columns = results.keys()
+    summary = {c:[] for c in columns[1:]}
+    for email in emails:
+        for i, col in enumerate(summary):
+            summary[col].append(email[i+1])
+    return summary
+
+
 def query_db(table_name: str, prompt: str, filters=None) -> pd.DataFrame:
     search_vector = get_embeddings(prompt)  # Convert search phrase into a vector.
     engine = sqlalchemy.create_engine(CONNECTION_STRING)

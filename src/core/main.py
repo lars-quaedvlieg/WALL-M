@@ -52,6 +52,7 @@ selected_row = [1]
 current_user_message = ""
 current_conv = None
 
+all_citations = {}
 citations = None
 cited_work = None
 
@@ -174,9 +175,11 @@ def select_conv(state: State, var_name: str, value) -> None:
     state.user_query = state.past_data[value[0][0]][1]["user_query"]
     state.data = state.past_data[value[0][0]][1]
 
-    print(state.citations)
+    if str(value[0][0]) in all_citations:  # We have been here before.
+        state.citations = all_citations[str(value[0][0])]
+    else:  # Let's remember we have been here.
+        all_citations[str(value[0][0])] = state.citations
     state.cited_work = pd.DataFrame(state.citations._dict)
-
 
     # If current_conv is set, store the current conversation (otherwise this is the first time this is called).
     if state.current_conv is not None:

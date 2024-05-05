@@ -9,7 +9,7 @@ from taipy.gui import Gui, State, notify, navigate
 from src.core.page_markdowns.customize import customize_page
 from src.core.page_markdowns.home import home_page
 from src.ragmail.build_database import create_db, table_exists
-from src.ragmail.query import get_senders, query
+from src.ragmail.query import get_senders, query, get_response, get_db_summary
 
 TABLE_NAME = "ShazList10"
 
@@ -40,6 +40,12 @@ filter_names = None
 people_names = None
 table_name = None
 dataset_samples = None
+# TODO: Add table name
+
+conversation = []
+conversation_table = {"Conversation": []}
+selected_row = [1]
+current_user_message = ""
 
 def on_init(state: State) -> None:
     """
@@ -80,6 +86,7 @@ def request(state: State) -> tuple[str, list[tuple[str, float]]]:
                 "dates_filter": [state.start_date, state.end_date],
             }
         )
+        state.conversation.append(response)
         return response, emails_scores
     except FileNotFoundError:
         notify(state, "error", "No match was found with the provided question settings.")
@@ -172,7 +179,6 @@ def email_adapter(item: list) -> [str, str]:
         id and displayed string
     """
     email_id = item[0]
-    print("printttttttttttt", item[1][1])
     score = f"{item[1][0][:30] + '...' if len(item[1][0]) > 30 else item[1][0]}"
     return email_id, score
 
@@ -186,6 +192,55 @@ def select_email(state: State, var_name: str, value) -> None:
         value: [[id, conversation]]
     """
     state.selected_email = state.data["generated_emails_scores"][value[0][0]][1][0]
+
+    
+def style_conv(state: State, idx: int, row: int) -> str:
+    """
+    Apply a style to the conversation table depending on the message's author.
+
+    Args:
+        - state: The current state of the app.
+        - idx: The index of the message in the table.
+        - row: The row of the message in the table.
+
+    Returns:
+        The style to apply to the message.
+    """
+    if idx is None:
+        return None
+    elif idx % 2 == 0:
+        return "user_message"
+    else:
+        return "gpt_message"
+
+
+def ask_the_gpt(state: State) -> str:
+    def get_true_context(old_context: str) -> str:
+        return "\n\n".join(old_context.split("\n\n")[1:])
+
+    state.conversation.append(state.current_user_message)
+    print("Contexts", state.data["generated_emails_scores"])
+    contexts = [get_true_context(email)
+                for _, (email, _) in state.data["generated_emails_scores"]]
+    answer = get_response(state.data["user_query"], contexts,
+                          new_messages=state.conversation)
+    state.conversation.append(answer)
+    state.selected_row = [len(state.conversation_table["Conversation"]) + 1]
+    return answer
+
+
+def send_message(state: State) -> None:
+    """
+    Send the user's message to the API and update the context.
+
+    Args:
+        - state: The current state of the app.
+    """
+    notify(state, "info", "Sending message...")
+    answer = ask_the_gpt(state)
+    state.conversation_table["Conversation"] += [state.current_user_message, answer]
+    state.current_user_message = ""
+    notify(state, "success", "Response received!")
 
 def select_workspace(state):
     state.show_dialog = True
@@ -212,7 +267,7 @@ def select_workspace(state):
             state.people_names = list(get_senders(table_name=state.table_name))
 
             # Create the sample dictionary for the example page
-            state.dataset_samples = {"subject": ["hi"], "author": ["Hi"], "time": ["Now"]}
+            state.dataset_samples = get_db_summary(state.table_name)
 
             notify(state, "success", "Created the database!")
 
@@ -239,7 +294,7 @@ def on_menu(state, action, info):
 
 pages = {
     "home": home_page,
-    "customize": customize_page,
+    "dataviewer": customize_page,
 }
 
 if __name__ == "__main__":

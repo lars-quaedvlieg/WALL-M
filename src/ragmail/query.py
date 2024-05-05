@@ -167,7 +167,7 @@ def query(table_name: str, prompt: str, filters: dict[str, Any]) -> tuple[str, l
                            f"Date: {row['email_date']}\n" +
                            f"Subject: {row['subject']}\n\n" +
                            f"Referenced text:\n\"{row['chunk_text']}\"\n\n" +
-                           f"(Similarity score: {row['score']:.2f})\n")
+                           f"(Similarity score: {float(row['score']):.2f})\n")
 
         referenced_context.append((formatted_chunk, row["score"]))
 

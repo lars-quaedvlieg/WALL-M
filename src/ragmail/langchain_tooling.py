@@ -107,23 +107,26 @@ def generate_with_citations(query: str, context: pd.DataFrame,
     return chain.invoke(query)
 
 
-def query(table_name: str, prompt: str, filters: dict[str, Any]) -> tuple[str, list[tuple[str, float]]]:
+def query(table_name: str, prompt: str, filters: dict[str, Any]) -> tuple[str, dict, list[tuple[str, float]]]:
     context = query_db(table_name, prompt, filters)
     response = generate_with_citations(prompt, context)
 
-    citations_formatted = [f"{c['source_id']}: \"{c['quote']}\"" for c in response['quoted_answer']['citations']]
-    citations_formatted = "\n".join(citations_formatted)
-    formatted_response = f"{response['quoted_answer']['answer']}\n\nCitations:\n{citations_formatted}"
+    source_ids = [f"[{c['source_id']}]" for c in response['quoted_answer']['citations']]
+    quotes = [f"\"{c['quote']}\"" for c in response['quoted_answer']['citations']]
+    citations = {"Source": source_ids, "Quote": quotes}
+    #citations_formatted = [f"{c['source_id']}: \"{c['quote']}\"" for c in response['quoted_answer']['citations']]
+    #citations_formatted = "\n".join(citations_formatted)
+    formatted_response = f"{response['quoted_answer']['answer']}"
 
     referenced_context = []
-    for _, row in context.iterrows():
-        formatted_chunk = (f"Sender: {row['sender']}\n" +
+    for i, row in context.iterrows():
+        formatted_chunk = (f"[{i}]\n\n Sender: {row['sender']}\n" +
                            f"Recipient: {row['recipient']}\n" +
                            f"Date: {row['email_date']}\n" +
                            f"Subject: {row['subject']}\n\n" +
-                           f"Referenced text:\n\"{row['chunk_text']}\"\n\n" +
+                           f"Email body:\n\"{row['text']}\"\n\n" +
                            f"(Similarity score: {float(row['score']):.2f})\n")
 
         referenced_context.append((formatted_chunk, row["score"]))
 
-    return formatted_response, referenced_context
+    return formatted_response, citations, referenced_context

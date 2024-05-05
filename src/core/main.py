@@ -9,9 +9,9 @@ from taipy.gui import Gui, State, notify, navigate
 from src.core.page_markdowns.customize import customize_page
 from src.core.page_markdowns.home import home_page
 from src.ragmail.build_database import create_db, table_exists
-from src.ragmail.query import get_senders, query
+from src.ragmail.query import get_senders, query, get_response
 
-TABLE_NAME = "ShazList6"
+TABLE_NAME = "ShazList10"
 
 client = None
 
@@ -38,6 +38,9 @@ filter_names = None
 people_names = None
 table_name = None
 # TODO: Add table name
+
+conversation = []
+selected_row = [1]
 
 def on_init(state: State) -> None:
     """
@@ -166,7 +169,6 @@ def email_adapter(item: list) -> [str, str]:
         id and displayed string
     """
     email_id = item[0]
-    print("printttttttttttt", item[1][1])
     score = f"{item[1][0][:30] + '...' if len(item[1][0]) > 30 else item[1][0]}"
     return email_id, score
 
@@ -180,6 +182,33 @@ def select_email(state: State, var_name: str, value) -> None:
         value: [[id, conversation]]
     """
     state.selected_email = state.data["generated_emails_scores"][value[0][0]][1][0]
+
+
+def ask_the_gpt(state: State) -> str:
+    def get_true_context(old_context: str) -> str:
+        return "\n\n".join(old_context.split("\n\n")[1:])
+
+    state.conversation.append(state.current_user_message)
+    contexts = [get_true_context(email)
+                for _, (email, _) in state.data["generated_emails_scores"]]
+    answer = get_response(state.data["user_query"], contexts,
+                          new_message=state.conversation)
+    state.conversation.append(answer)
+    state.selected_row = [len(state.conversation["Conversation"]) + 1]
+    return answer
+
+
+def send_message(state: State) -> None:
+    """
+    Send the user's message to the API and update the context.
+
+    Args:
+        - state: The current state of the app.
+    """
+    notify(state, "info", "Sending message...")
+    ask_the_gpt(state)
+    state.current_user_message = ""
+    notify(state, "success", "Response received!")
 
 def select_workspace(state):
     state.show_dialog = True

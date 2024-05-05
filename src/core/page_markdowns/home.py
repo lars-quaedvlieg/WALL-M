@@ -6,7 +6,7 @@ Are you sure you want to load the data? Even if you have data loaded, this will 
 <|layout|columns=300px 1|
 
 <|part|class_name=sidebar|
-# E-mai**LM**{: .color-primary} # {: .logo-text}
+# WA**LL-M**{: .color-primary} # {: .logo-text}
 <|Select Mail Directory|button|class_name=fullwidth plain|id=select_workspace_button|on_action=select_workspace|>
 <|part|render={mail_data_path is not None}|
 *Current e-mail data directory*: <|{mail_data_path}|>

@@ -15,8 +15,6 @@ SYSTEM_PROMPT = (
     "Verify your answers against the context to ensure accuracy. "
     "Accurate answers will be rewarded to promote meticulous response formulation."
     "Hallucination of information that isn't in the data will be punished appropriately."
-    "Most importantly, tag each of your claims with the correct source chronologically. For example, if you use facts from the first source, you end with a [1], etc."
-    "If there are two or more citations in one sentence, make sure to write them separately (e.g. [1][2])."
 )
 
 TEMPLATE = (

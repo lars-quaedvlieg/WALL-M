@@ -9,9 +9,10 @@ from taipy.gui import Gui, State, notify, navigate
 from src.core.page_markdowns.customize import customize_page
 from src.core.page_markdowns.home import home_page
 from src.ragmail.build_database import create_db, table_exists
-from src.ragmail.query import get_senders, query, get_response, get_db_summary
+from src.ragmail.query import get_senders, get_response, get_db_summary
+from src.ragmail.langchain_tooling import query
 
-TABLE_NAME = "ShazList10"
+TABLE_NAME = "ShazList212315"
 
 client = None
 
@@ -327,4 +328,4 @@ if __name__ == "__main__":
 
     client = openai.Client(api_key=api_key)
 
-    Gui(pages=pages).run(debug=True, dark_mode=True, use_reloader=True, title="E-maiLM")
+    Gui(pages=pages).run(debug=True, dark_mode=True, use_reloader=True, title="WALL-M")

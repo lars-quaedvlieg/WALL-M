@@ -39,7 +39,7 @@ logo_image = None
 filter_names = None
 people_names = None
 table_name = None
-# TODO: Add table name
+dataset_samples = None
 
 def on_init(state: State) -> None:
     """
@@ -68,6 +68,7 @@ def on_init(state: State) -> None:
     state.selected_email_id = None
     state.people_names = []
     state.table_name = None
+    state.dataset_samples = {}
 
 def request(state: State) -> tuple[str, list[tuple[str, float]]]:
     try:
@@ -209,6 +210,10 @@ def select_workspace(state):
 
             # We can now get a list of people's names that we have e-mails from
             state.people_names = list(get_senders(table_name=state.table_name))
+
+            # Create the sample dictionary for the example page
+            state.dataset_samples = {"subject": ["hi"], "author": ["Hi"], "time": ["Now"]}
+
             notify(state, "success", "Created the database!")
 
 

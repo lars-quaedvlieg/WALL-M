@@ -15,6 +15,9 @@ Are you sure you want to load the data? Even if you have data loaded, this will 
 
 <|part|class_name=p2 align-item-top table scrollable|
 <|navbar|on_action=on_menu|>
+<|part|render={mail_data_path is not None}|
+<|{dataset_samples}|table|>
+|>
 |>
 
 |>

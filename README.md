@@ -13,9 +13,9 @@ The repository contains the complete question-answering platform, which you can 
     git clone git@github.com:lars-quaedvlieg/WALL-M.git
     ```
    
-2. Change your directory to hackupc-2024
+2. Change your directory to WALL-M
     ```Shell
-    cd hackupc-2024
+    cd WALL-M
     ```
 
 3. Install IRIS Community Edtion in a container, which will open a port on your device for the IRIS database system:

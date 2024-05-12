@@ -65,6 +65,22 @@ The repository contains the complete question-answering platform, which you can 
 
 8. Once you have launched the platform, you need to head to `127.0.0.1:5000`. Once there, you need to **select a data directory**. This directory should contain JSON-files with e-mail descriptions, but we hope to replace this with direct authentication to Outlook in the future. The method to obtain these JSON-files can also be found in the codebase. These files are then used to create a database table with IRIS, which can then be queried using Retrieval Augmented Generations and Large Language Models.
 
+## Scraping E-Mails
+
+1. In order to scrape your emails, make sure you are on a windows machine. You can then install the required packages by running:
+
+    ```Shell
+    pip install -r requirements_outlook.txt
+    ```
+
+1.  We need to scrape e-mails from an Outlook account. For this you need to be signed in to your Outlook account in the Windows Outlook application. Then, you can run the following code to scrape e-mails:
+
+    ```Shell
+    python src/outlook/scrape_emails.py --email [YOUR_EMAIL]
+    ```
+
+    This will add the emails in the `data` directory with JSON-files containing the e-mail descriptions. These files can then be used to create a database table with IRIS.
+
 ## Using the IRIS Management Portal
 
 1. Navigate to `http://localhost:52773/csp/sys/UtilHome.csp`, login with username: `demo`, password: `demo` (or whatever you configured)
